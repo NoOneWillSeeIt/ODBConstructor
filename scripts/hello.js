@@ -1,48 +1,45 @@
 ﻿"use strict";
 var body = document.body;
+var canvas = document.getElementById("canvas");
 var canvasHolder = document.getElementById("canvas-holder");
 canvas.onclick = function(e) {
-	// if(e.which != 1)
-	// 	return;
-	// var div = document.createElement('div');
-	// div.className = "table-container";
-	// div.style.width = 100;
-	// div.style.height = 60;
-	// var header = document.createElement('p');
-	// header.innerHTML = "Table 1";
-	// header.style.align = "center";
-	// header.style.font_weight = "bold";
-	// header.style.width = 100 + "%";
-	// div.appendChild(header);
-	// var table = document.createElement('table');
-	// //table.className = "table-fields-container";
-	// table.style.width = 100;
-	// var initRow = table.insertRow(0);
-	// //initRow.className = "table-fields-elements";
-	// initRow.insertCell(0).innerHTML = "Cell 1";
-	// initRow.insertCell(1).innerHTML = "Cell 2";
-	// div.appendChild(table);
+	
+	var div = document.createElement('div');
+	div.className = "table-container";
+	div.style.width = 100;
+	div.style.height = 60;
+	var header = document.createElement('p');
+	header.innerHTML = "Table 1";
+	header.style.align = "center";
+	header.style.font_weight = "bold";
+	header.style.width = 100 + "%";
+	div.appendChild(header);
 
-	// var clientRect = canvas.getClientRect();
+	var table = document.createElement('table');
+	table.style.width = 100;
+	var initRow = table.insertRow(0);
+	initRow.insertCell(0).innerHTML = "Cell 1";
+	initRow.insertCell(1).innerHTML = "Cell 2";
+	div.appendChild(table);
 
-	// //alert("x = " + e.pageX + "\ny = " + e.pageY + "\nwhich = " + e.which);
-	// div.style.left = e.pageX + "px";
-	// div.style.top = e.pageY + "px";
-	// canvas.appendChild(div);
-	var obj = getOnCanvasClickCoords();
-	alert("x = " + obj.x + " y=  " + obj.y + 
-		"\npageYoffset = " + canvasHolder.scrollTop);
+	var obj = getOnCanvasClickCoords(e.clientX, e.clientY);
+
+	div.style.left = obj.x + "px";
+	div.style.top = obj.y + "px";
+	canvas.appendChild(div);
 }
 
 function getOnCanvasClickCoords(clientX, clientY) {
 	var cHPos = canvasHolder.getBoundingClientRect();
-	
-	var canvasCoords = {};
-	canvasCoords.x = cHPos.x + canvas.style.marginLeft +
-	canvasHolder.style.paddingLeft + canvasHolder.scrollLeft;
+	var canvasCSS = window.getComputedStyle(canvas);
+	//var canvasHolderCSS = window.getComputedStyle(canvasHolder);
 
-	canvasCoords.y = cHPos.y + canvas.style.marginTop + 
-	canvasHolder.style.paddingTop + canvasHolder.scrollTop;//bug: didn't count ScrollTop
+	var canvasCoords = {};
+	canvasCoords.x = clientX - cHPos.x - 
+		parseInt(canvasCSS.marginLeft) + canvasHolder.scrollLeft;
+
+	canvasCoords.y = clientY - cHPos.y - 
+		parseInt(canvasCSS.marginTop) + canvasHolder.scrollTop;
 
 	return canvasCoords;
 }
