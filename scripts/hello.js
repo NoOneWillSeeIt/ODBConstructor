@@ -4,15 +4,12 @@ var canvas = document.getElementById("canvas");
 var canvasHolder = document.getElementById("canvas-holder");
 canvas.onclick = function(e) {
 	
+	//TODO: add drag-n-drop
+
 	var div = document.createElement('div');
 	div.className = "table-container";
-	// div.style.width = 100 + "px";
-	// div.style.height = 80 + "px";
 	var header = document.createElement('p');
 	header.innerHTML = "Table 1";
-	// header.style.alignSelf = "center";
-	// header.style.font_weight = "bold";
-	// header.style.width = 100 + "%";
 	div.appendChild(header);
 
 	var table = document.createElement('table');
@@ -27,19 +24,10 @@ canvas.onclick = function(e) {
 	div.style.left = obj.x + "px";
 	div.style.top = obj.y + "px";
 
-	console.log(obj);
-
 	canvas.appendChild(div);
 
 	var canvasCSS = window.getComputedStyle(canvas);
 	var Zayka = window.getComputedStyle(div);
-	alert("x = " + Zayka.width + " objx = " + obj.x + 
-		"y = " + Zayka.height + " objy = " + obj.y);
-
-	console.log(Zayka);
-
-	alert("x = " + (obj.x + parseInt(Zayka.width) > parseInt(canvasCSS.width)) +
-		" y = " + (obj.y + parseInt(Zayka.height) > parseInt(canvasCSS.height)));
 
 	if (obj.x + parseInt(Zayka.width) > parseInt(canvasCSS.width)) {
 		div.style.left = parseInt(canvasCSS.width) - parseInt(Zayka.width) - 
@@ -54,8 +42,7 @@ canvas.onclick = function(e) {
 function getOnCanvasClickCoords(clientX, clientY) {
 	var cHPos = canvasHolder.getBoundingClientRect();
 	var canvasCSS = window.getComputedStyle(canvas);
-	//var canvasHolderCSS = window.getComputedStyle(canvasHolder);
-
+	
 	var canvasCoords = {};
 	canvasCoords.x = clientX - cHPos.x - 
 		parseInt(canvasCSS.marginLeft) + canvasHolder.scrollLeft;
