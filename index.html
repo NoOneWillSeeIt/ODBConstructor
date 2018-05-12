@@ -52,7 +52,7 @@
 		border-radius: 2px;
 		margin: 20px;
 		padding: 0px;
-		overflow: auto;
+		overflow: hidden;
 		position: relative;
 	}
 	.footer {
@@ -61,17 +61,24 @@
 		background-color: #000000;
 	}
 	.table-container {
-		display: block;
+		display: flex;
+		flex-flow: column nowrap;
 		position: absolute;
 		padding: 0px;
-		border: 1px solid;
-		border-radius: 4px;
+		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
+		border-radius: 8px 8px 4px 4px;
+		background: linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1));
+	}
+	.table-container p {
+		flex: 0 1 auto;
+		align-self: center;
+		font-weight: bold;
 		color: white;
-		background-color: #346d91;
 	}
 	.table-container table {
-		border: 1px solid;
-		border-radius: 4px;
+		flex: 0 1 auto;
+		border: 1px;
+		border-radius: 0px 0px 4px 4px;
 		color: black;
 		background-color: white;
 	}
