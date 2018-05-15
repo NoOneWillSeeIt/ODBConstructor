@@ -9,7 +9,21 @@
 		box-sizing: border-box;
 	}
 	html {
-		/*TODO: add basic text styles*/
+		font-family: "Trebuchet MS", Helvetica, sans-serif;
+		font-size: 1em;
+	}
+	::-webkit-scrollbar {
+		width: 12px;
+		height: 12px;
+	}
+	::-webkit-scrollbar-track {
+		background: #f1f1f1;
+	}
+	::-webkit-scrollbar-thumb {
+		background: #888;
+	}
+	::-webkit-scrollbar-thumb:hover {
+		background: #555;
 	}
 	.wrapper {
 		display: flex;
@@ -18,6 +32,7 @@
 		max-width: 100vw;
 		margin: 0px;
 		padding: 0px;
+		overflow: hidden;
 	}
 	.toolbar-top {
 		flex: 1 1 4em;
@@ -29,7 +44,6 @@
 		order: 2;
 		display: flex;
 		flex-flow: row nowrap;
-		justify-content: flex-start;
 	}
 	#canvas-holder {
 		flex: 1 1 auto;
@@ -39,20 +53,22 @@
 		background-color: #cccccc;
 	}
 	.toolbar-right {
-		flex: 1 1 20%;
+		flex: 2 1 23%;
 		order: 2;
-		overflow: auto;
 		background-color: #eeeeee;
+		border: 2px 0px 0px 0px;
+		border-style: solid;
+		border-color: #4286f4;
 	}
 	#canvas {
+		flex: 4 1 auto;
+		order: 1;
 		width: 2000px;
-		height: 1000px;
-		background-color: white;
-		border: 2px solid #aaaaaa;
-		border-radius: 2px;
-		margin: 20px;
+		height: 2000px;
+		background-color: #f2f2f2;
+		border: 2px solid;
+		margin: 0px;
 		padding: 0px;
-		overflow: hidden;
 		position: relative;
 	}
 	.footer {
@@ -61,43 +77,41 @@
 		background-color: #000000;
 	}
 	.table-container {
-		display: flex;
-		flex-flow: column nowrap;
 		position: absolute;
 		padding: 0px;
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
-		border-radius: 8px 8px 4px 4px;
-		background: linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1));
+		border-radius: 4px 4px 2px 2px;
 	}
-	.table-container p {
-		flex: 0 1 auto;
+	.table-container thead {
+		width: 100%;
 		align-self: center;
 		font-weight: bold;
 		color: white;
+		background: linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1));
 	}
-	.table-container table {
-		flex: 0 1 auto;
-		border: 1px;
-		border-radius: 0px 0px 4px 4px;
+	.table-container tr {
+		border: 1px solid;
 		color: black;
 		background-color: white;
-	}
+	}/*
 	.table-container td {
 		margin: 0px;
 		padding: 5px;
 	}
 	.table-container td:first-child {
 		border-right: 1px solid;
-	}
+	}*/
 </style>
 <body class="wrapper">
-	<header class="toolbar-top"></header>
+	<header class="toolbar-top"><p>my top toolbar</p></header>
 	<div class="main-wrapper">
 		<div id="canvas-holder">
-			<div id="canvas"></div>
+			<div id="canvas">
+				
+			</div>
 		</div>
-		<div class="toolbar-right"></div>
+		<div class="toolbar-right"><p color="white">my right toolbar</p></div>
 	</div>
-	<footer class="footer"></footer>
+	<footer class="footer"><p>my footer</p></footer>
 </body>
 </html>
