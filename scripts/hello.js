@@ -7,12 +7,15 @@ canvas.onclick = function(e) {
 
 	var table = document.createElement('table');
 	table.className = "table-container";
-	table.createTHead();
-	table.tHead.innerHTML = "Table 1";
+	var header = table.createTHead();
+	table.tHead.insertRow(0).innerHTML = "<th colspan=\"8\">Table 1</th>";
+	//table.tHead.innerHTML = "Table 1";
 	
-	var initRow = table.insertRow(0);
+	var tBody = document.createElement('tbody');
+	var initRow = tBody.insertRow(0);
 	initRow.insertCell(0).innerHTML = "Cell 1";
 	initRow.insertCell(1).innerHTML = "Cell 2";
+	table.appendChild(tBody);
 
 	var obj = getOnCanvasClickCoords(e.clientX, e.clientY);
 
@@ -22,15 +25,15 @@ canvas.onclick = function(e) {
 	canvas.appendChild(table);
 
 	var canvasCSS = window.getComputedStyle(canvas);
-	var Zayka = window.getComputedStyle(table);
+	var tableCS = window.getComputedStyle(table);
 
-	if (obj.x + parseInt(Zayka.width) > parseInt(canvasCSS.width)) {
-		table.style.left = parseInt(canvasCSS.width) - parseInt(Zayka.width) - 
-			parseInt(Zayka.borderRight) - 10 + "px";
+	if (obj.x + parseInt(tableCS.width) > parseInt(canvasCSS.width)) {
+		table.style.left = parseInt(canvasCSS.width) - parseInt(tableCS.width) - 
+			parseInt(tableCS.borderRight) - 10 + "px";
 	}
-	if (obj.y + parseInt(Zayka.height) > parseInt(canvasCSS.height)) {
-		table.style.top = parseInt(canvasCSS.height) - parseInt(Zayka.height) -
-			parseInt(Zayka.borderBottom) - 10 + "px";
+	if (obj.y + parseInt(tableCS.height) > parseInt(canvasCSS.height)) {
+		table.style.top = parseInt(canvasCSS.height) - parseInt(tableCS.height) -
+			parseInt(tableCS.borderBottom) - 10 + "px";
 	}
 }
 

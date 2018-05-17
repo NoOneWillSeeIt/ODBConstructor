@@ -1,8 +1,9 @@
 ﻿<!doctype html>
 <html>
 <head>
-<title>JS</title>
-<script async src="scripts/hello.js"></script>
+	<meta charset="utf-8">
+	<title>JS</title>
+	<script async src="scripts/hello.js"></script>
 </head>
 <style>
 	* {
@@ -44,6 +45,7 @@
 		order: 2;
 		display: flex;
 		flex-flow: row nowrap;
+		overflow: auto;
 	}
 	#canvas-holder {
 		flex: 1 1 auto;
@@ -79,18 +81,21 @@
 	.table-container {
 		position: absolute;
 		padding: 0px;
+		border: 1px solid rgba(14, 144, 214, 1);
 		box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
 		border-radius: 4px 4px 2px 2px;
+		border-spacing: 0px;
 	}
-	.table-container thead {
-		width: 100%;
+	.table-container th {
 		align-self: center;
 		font-weight: bold;
+		margin: 0px;
+		padding: 0.5em;
 		color: white;
 		background: linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1));
 	}
 	.table-container tr {
-		border: 1px solid;
+		margin: 0px;
 		color: black;
 		background-color: white;
 	}/*
