@@ -38,7 +38,8 @@
 	.toolbar-top {
 		flex: 1 1 4em;
 		order: 1;
-		background-color: #2e66a5;
+		background-color: #008CBA;
+		display: inline-block;
 	}
 	.main-wrapper {
 		flex: 1 1 auto;
@@ -47,7 +48,7 @@
 		flex-flow: row nowrap;
 		overflow: auto;
 	}
-	#canvas-holder {
+	#canvas-box {
 		flex: 1 1 auto;
 		order: 1;
 		overflow: auto;
@@ -88,6 +89,7 @@
 	}
 	.table-container th {
 		align-self: center;
+		cursor: move;
 		font-weight: bold;
 		margin: 0px;
 		padding: 0.5em;
@@ -106,13 +108,31 @@
 	.table-container td:first-child {
 		border-right: 1px solid;
 	}*/
+	.button-header {
+		background-color: #008CBA;
+		border: none;
+		border-right: 1px solid #007399;
+		margin: 0px;
+		color: white;
+		padding: 20px;
+		text-align: center;
+		font-size: 1em;
+	}
+	.context-menu {
+		/*TODO: context menu*/
+	}
 </style>
 <body class="wrapper">
-	<header class="toolbar-top"><p>my top toolbar</p></header>
+	<header class="toolbar-top">
+		<button class="button-header" id="new-table-btn">Новая таблица</button>
+		<button class="button-header">Новое соединение</button>
+		<button class="button-header">Сгенерировать SQL</button>
+		<button class="button-header">Режим обучения</button>
+		<button class="button-header">Горячие клавиши</button>
+	</header>
 	<div class="main-wrapper">
-		<div id="canvas-holder">
-			<div id="canvas">
-				
+		<div id="canvas-box">
+			<div id="canvas">	
 			</div>
 		</div>
 		<div class="toolbar-right"><p color="white">my right toolbar</p></div>
