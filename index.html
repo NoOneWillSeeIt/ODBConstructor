@@ -37,7 +37,7 @@
 	.header {
 		flex: 1 1 4em;
 		order: 1;
-		background-color: #008CBA;
+		background-color: #0d91d9;
 		display: inline-block;
 	}
 	.content {
@@ -79,9 +79,9 @@
 	.button {
 		border: none;
 		margin: 0px;
-		color: white;
 		font: inherit;
-		background-color: #008CBA;
+		transition-duration: 0.2s;
+		-webkit-transition-duration: 0.2s;
 	}
 	.table {
 		position: absolute;
@@ -115,6 +115,7 @@
 	}
 	.tfooter .button {
 		margin: 5px;
+		color: white;
 		background-color: black; 
 	}
 	.table tr {
@@ -133,21 +134,35 @@
 	}*/
 	.header .button {
 		border-right: 1px solid #007399;
+		color: white;
 		padding: 20px;
+		margin: 0px;
 		text-align: center;
+		background-color: #0d91d9;
+	}
+	.header .button:hover {
+		background-color: #0a71a9;
 	}
 	.context-menu {
 		display: none;
 		position: absolute;
-		background-color: #008CBA;
+		background-color: white;
 		border: 1px solid black;
-		padding: 4px 2px;
-		border-radius: 3px;
+		padding: 2px;
+		/*border-radius: 2px;*/
 	}
 	.context-menu .button {
 		display: block;
 		padding-top: 4px;
 		padding-bottom: 4px;
+		width: 100%;
+		color: black;
+		background-color: white;
+		border: 1px solid white;
+	}
+	.context-menu .button:hover {
+		border: 1px solid #0a71a9/*#0e90d6*/;
+		background-color: #87d0f8/*#39b2f3*/;
 	}
 	.context-menu hr {
 		margin: 0px;
@@ -155,18 +170,17 @@
 </style>
 <body class="wrapper">
 	<header class="header">
-		<button class="button" id="new-table-btn">Новая таблица</button>
-		<button class="button">Новое соединение</button>
-		<button class="button">Сгенерировать SQL</button>
-		<button class="button">Режим обучения</button>
-		<button class="button">Горячие клавиши</button>
+		<button class="button" id="new-table-btn">Новая таблица</button><!--
+		--><button class="button">Новое соединение</button><!--
+		--><button class="button">Сгенерировать SQL</button><!--
+		--><button class="button">Режим обучения</button><!--
+		--><button class="button">Горячие клавиши</button>
 	</header>
 	<div class="content">
 		<div id="canvas-box">
 			<div id="canvas">
 				<div class="context-menu" id="canvas-context">
 				<button class="button" data-action="createTable">Новая таблица</button>
-				<hr>
 				<button class="button">Новое соединение</button>	
 			</div>	
 			</div>

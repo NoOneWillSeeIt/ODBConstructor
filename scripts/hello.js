@@ -33,7 +33,9 @@ contextMenu.onclick = function(e) {
 	}
 	contextMenu.style.display = "none";
 }
-
+contextMenu.onmousedown = function(e) {
+	e.stopPropagation();
+}
 canvas.oncontextmenu = function(e) {
 	let canvasBox = getCanvasBoxOffset();
 	let clickCoords = {
@@ -58,7 +60,7 @@ canvas.oncontextmenu = function(e) {
 	return false;
 }
 
-canvas.onclick = function(e) {
+canvas.onmousedown = function(e) {
 	contextMenu.style.display="none";
 }
 
