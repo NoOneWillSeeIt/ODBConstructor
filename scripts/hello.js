@@ -33,9 +33,11 @@ contextMenu.onclick = function(e) {
 	}
 	contextMenu.style.display = "none";
 }
+
 contextMenu.onmousedown = function(e) {
 	e.stopPropagation();
 }
+
 canvas.oncontextmenu = function(e) {
 	let canvasBox = getCanvasBoxOffset();
 	let clickCoords = {
@@ -60,7 +62,7 @@ canvas.oncontextmenu = function(e) {
 	return false;
 }
 
-canvas.onmousedown = function(e) {
+document.onmousedown = function(e) {
 	contextMenu.style.display="none";
 }
 
@@ -177,3 +179,15 @@ function getElemCoords(elem) {
 		top: box.y + container.scrollTop
 	};
 }
+
+let accordions = document.getElementsByClassName("accordion");
+[].forEach.call(accordions, function (elem) {
+	elem.onclick = function(e) {
+		this.classList.toggle("active");
+		let panel = this.nextElementSibling;
+		if(panel.style.maxHeight)
+			panel.style.maxHeight = null;
+		else
+			panel.style.maxHeight = panel.scrollHeight + "px";
+	}
+});

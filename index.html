@@ -45,7 +45,7 @@
 		order: 2;
 		display: flex;
 		flex-flow: row nowrap;
-		overflow: auto;
+		overflow: hidden;
 	}
 	#canvas-box {
 		flex: 1 1 auto;
@@ -54,7 +54,7 @@
 		padding: 0px;
 		background-color: #cccccc;
 	}
-	.toolbar-right {
+	.sidebar {
 		flex: 2 1 23%;
 		order: 2;
 		background-color: #eeeeee;
@@ -167,6 +167,34 @@
 	.context-menu hr {
 		margin: 0px;
 	}
+	.accordion {
+		background-color: #0d91d9;
+		color: white;
+		width: 100%;
+		border: 0px;
+		padding: 5px;
+		margin: 5px 0px 5px 0px;
+		transition: 0.3s;
+	}
+	.active, .accordion:hover {
+		background-color: #0b81c1;
+	}
+	.accordion:after {
+		content: '\25BC';
+		float: right;
+		font-size: 0.8em;
+	}
+	.active:after {
+		content: '\25B2';
+	}
+	.panel {
+		background-color: #f2f2f2;
+		color: black;
+		max-height: 0;
+		overflow: hidden;
+		transition: max-height 0.2s ease-out;
+		display: block;
+	}
 </style>
 <body class="wrapper">
 	<header class="header">
@@ -185,7 +213,20 @@
 			</div>	
 			</div>
 		</div>
-		<div class="toolbar-right"><p color="white">my right toolbar</p></div>
+		<div class="sidebar">
+			<button class="accordion">Свойства таблицы</button>
+			<div class="panel">
+				1231321
+			</div>
+			<button class="accordion">Поля</button>
+			<div class="panel">
+				23132121
+			</div>
+			<button class="accordion">Связи</button>
+			<div class="panel">
+				1231321
+			</div>
+		</div>
 	</div>
 	<footer class="footer"><p>my footer</p></footer>
 </body>
