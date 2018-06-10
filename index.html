@@ -128,10 +128,15 @@
 		margin: 0px;
 		padding: 5px;
 		border-right: 1px solid #0EA2F1;
-	}/*
+	}
+	/*
 	.table td:first-child {
 		border-right: 1px solid;
 	}*/
+	.fields {
+		width: 100%;
+
+	}
 	.header .button {
 		border-right: 1px solid #007399;
 		color: white;
@@ -175,6 +180,7 @@
 		padding: 5px;
 		margin: 5px 0px 5px 0px;
 		transition: 0.3s;
+		font: inherit;
 	}
 	.active, .accordion:hover {
 		background-color: #0b81c1;
@@ -195,6 +201,14 @@
 		transition: max-height 0.2s ease-out;
 		display: block;
 	}
+	.input {
+		font: inherit;
+		resize: none;
+		vertical-align: middle;
+	}
+	.disabled {
+
+	}
 </style>
 <body class="wrapper">
 	<header class="header">
@@ -213,17 +227,24 @@
 			</div>	
 			</div>
 		</div>
-		<div class="sidebar">
+		<div class="sidebar" id="sidebar">
 			<button class="accordion">Свойства таблицы</button>
-			<div class="panel">
-				1231321
+			<div class="panel" id="table-panel">
+				<p>Имя:<textarea rows="1" class="input"></textarea></p>
+				<button class="button" data-action="setName">Сохранить</button>
 			</div>
 			<button class="accordion">Поля</button>
-			<div class="panel">
-				23132121
+			<div class="panel" id="fields-panel">
+				<table class="fields">
+					<tfoot>
+						<tr><th colspan="8"><button class="button" data-action="updateFields">Добавить поле</button></th></tr>
+					</tfoot>
+					<tbody>
+					</tbody>
+				</table>		
 			</div>
 			<button class="accordion">Связи</button>
-			<div class="panel">
+			<div class="panel" id="connections-panel">
 				1231321
 			</div>
 		</div>
