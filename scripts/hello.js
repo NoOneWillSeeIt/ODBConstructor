@@ -35,7 +35,22 @@ function tableManager(table) {
 	}
 
 	let fieldList = [];
-
+	this.updateHTML = function() {
+		while(tbody.hasChildNodes()) {
+			tbody.removeChild(0);
+		}
+		for (let i = 0; i < fieldList.length; i++) {
+			let row = tbody.insertRow(-1);
+			row.insertCell(0).innerHTML = (fieldList[i].primK)? "+" : " ";
+			row.insertCell(1).innerHTML = fieldList[i].name;
+			row.insertCell(2).innerHTML = fieldList[i].type;
+			row.insertCell(3).innerHTML = "  ";
+		}
+	}
+	this.getFields = function(fields) {
+		fieldList = fields.slice();
+		updateHTML();
+	}
 	this.getHTMLTable = function(e) {
 		return DOMtable;
 	}
@@ -53,8 +68,8 @@ function tableManager(table) {
 		row.insertCell(2).innerHTML = nfield.type;
 		row.insertCell(3).innerHTML = "  ";
 	}
-	this.deleteRow = function(num) {
-		tbody.removeChild(tbody.rows(num));
+	this.deleteField = function(num) {
+		tbody.removeChild(tbody.rows[num]);
 		fieldList.splice(num, 1);
 	}
 	this.updateField = function(num, options) {
@@ -71,7 +86,7 @@ function tableManager(table) {
 			tbody.insertBefore(removed, tbody.children[insNum + 1]);
 	}
 	this.getFields = function() {
-		return fieldList; //доработать с .slice()
+		return fieldList.slice();
 	}
 	this.getName = function() {
 		return name;
@@ -258,12 +273,13 @@ function setSidebar(tableM) {
 			}
 			fieldsTable.tBodies[0].removeChild(HTMLrow);
 			console.log(tableM.getFields(), fields);
+			tableM.deleteField(index);
 		}
 	}
 
 	let newFieldBtn = document.getElementById("addFieldBtn");
 	newFieldBtn.onclick = function(e) {
-		fields.push({
+		let options = {
 			name: "поле" + fields.length,
 			type: "int",
 			nullable: false,
@@ -272,11 +288,13 @@ function setSidebar(tableM) {
 			typeOpt1: null,
 			typeOpt2: null,
 			FK: null
-		});
+		};
+		fields.push(options);
 		let row = fieldsTable.tBodies[0].getElementsByClassName("initial")[0].cloneNode(true);
 		fieldBinder(row, fields[fields.length-1]);
 		row.classList.remove("initial");
 		fieldsTable.tBodies[0].appendChild(row);
+		tableM.appendField(options);
 		console.log(tableM.getFields(), fields);
 	}
 }
