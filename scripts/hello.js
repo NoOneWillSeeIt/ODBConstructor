@@ -3,10 +3,11 @@ let body = document.body;
 let canvas = document.getElementById("canvas");
 let contextMenu = document.getElementById("canvas-context");
 
-function tableManager(table, tname) {
-	let name = tname;
-	this.DOMtable = table;
-	let tbody = this.DOMtable.tBodies[0];
+function tableManager(table) {
+	let name = "";
+	let DOMtable = table;
+	let tbody = DOMtable.tBodies[0];
+
 	function field(options) {
 		if (options.name == undefined || options.type == undefined) {
 			alert("Неверные значения имени и типа поля");
@@ -20,26 +21,31 @@ function tableManager(table, tname) {
 		this.typeOpt1 = options.typeOpt1 || null;
 		this.typeOpt2 = options.typeOpt2 || null;
 		this.FK = options.FK || null;
-		let self = this;
+
 		this.editField = function(options) {
-			self.name = options.name || self.name;
-			self.type = options.type || self.type;
-			self.nullable = options.nullable || self.nullable;
-			self.primK = options.primK || self.primK;
-			self.autoinc = options.autoinc || self.autoinc;
-			self.typeOpt1 = options.typeOpt1 || self.typeOpt1;
-			self.typeOpt2 = options.typeOpt2 || self.typeOpt2;
-			self.FK = options.FK || self.FK;
+			name = options.name || self.name;
+			type = options.type || self.type;
+			nullable = options.nullable || self.nullable;
+			primK = options.primK || self.primK;
+			autoinc = options.autoinc || self.autoinc;
+			typeOpt1 = options.typeOpt1 || self.typeOpt1;
+			typeOpt2 = options.typeOpt2 || self.typeOpt2;
+			FK = options.FK || self.FK;
 		}
 	}
+
 	let fieldList = [];
+
+	this.getHTMLTable = function(e) {
+		return DOMtable;
+	}
+
 	this.appendField = function(options) {
 		let nfield = new field(options);
 		if(nfield === null) {
 			alert("Не удалось добавить поле");
 			return;
 		}
-		console.log(self, this, fieldList);
 		fieldList.push(nfield);
 		let row = tbody.insertRow(-1);
 		row.insertCell(0).innerHTML = (nfield.primK)? "+" : " ";
@@ -72,8 +78,38 @@ function tableManager(table, tname) {
 	}
 	this.setName = function(tname) {
 		name = tname || name;
+		DOMtable.tHead.rows[0].cells[0].textContent = name;
 	}
 	this.getConnections = function() {}
+
+	let self = this;
+	new function makeDraggable(DOMtable) {
+		table.tHead.onmousedown = mouseDown;
+		let shiftX = 0, shiftY = 0;
+		let canvasBox = {};
+		function mouseDown(e) {
+			table.style.zIndex = 1000;
+			let clickCoords = getCanvasClickCoords(e);
+			shiftX = table.offsetLeft - clickCoords.left;
+			shiftY = table.offsetTop - clickCoords.top;
+			canvasBox = getCanvasBoxOffset();
+			setSidebar(self);
+			document.onmousemove = mouseDrag;
+			document.onmouseup = stopDrag;
+			document.onselectstart = function() {return false;}
+		}
+		function mouseDrag(e) {
+			canvasBox = getCanvasBoxOffset();
+			table.style.left = e.pageX - canvasBox.x + canvasBox.scrollLeft + shiftX + "px";
+			table.style.top = e.pageY - canvasBox.y + canvasBox.scrollTop + shiftY + "px";
+		}
+		function stopDrag(e) {
+			document.onmousemove = null;
+			document.onmouseup = null;
+			document.onselectstart = null;
+			table.style.zIndex = 0;
+		}
+	}
 }
 
 let tableList=[];
@@ -146,88 +182,79 @@ function getCanvasBoxOffset() {
 	};
 }
 
-function makeDraggableTable(elem) {
-	elem.firstChild.onmousedown = mouseDown;
-	let shiftX = 0, shiftY = 0;
-	let canvasBox = {};
-	function mouseDown(e) {
-		elem.style.zIndex = 1000;
-		let clickCoords = getCanvasClickCoords(e);
-		shiftX = elem.offsetLeft - clickCoords.left;
-		shiftY = elem.offsetTop - clickCoords.top;
-		canvasBox = getCanvasBoxOffset();
-		document.onmousemove = mouseDrag;
-		document.onmouseup = stopDrag;
-		document.onselectstart = function() {return false;}
-	}
-	function mouseDrag(e) {
-		canvasBox = getCanvasBoxOffset();
-		elem.style.left = e.pageX - canvasBox.x + canvasBox.scrollLeft + shiftX + "px";
-		elem.style.top = e.pageY - canvasBox.y + canvasBox.scrollTop + shiftY + "px";
-	}
-	function stopDrag(e) {
-		document.onmousemove = null;
-		document.onmouseup = null;
-		document.onselectstart = null;
-		elem.style.zIndex = 0;
-	}
-}
 
-function makeSelectableTable(elem) {
-	elem.onclick = function(e) {
-		let side = document.getElementById("sidebar");
-		let panels = side.getElementsByClassName("panel");
-		let index = null;
-		for (let i = 0; i < tableList.length; i++) {
-			if(tableList[i].DOMtable === elem){
-				index=i;
-				break;
+function setSidebar(tableM) {
+	let tpanel = document.getElementById("table-panel");
+	let fpanel = document.getElementById("fields-panel");
+	let cpanel = document.getElementById("connections-panel");
+	let textarea = tpanel.getElementsByClassName("input")[0];
+	textarea.value = tableM.getName();
+	textarea.addEventListener("focusout", function(e) {
+		if (textarea.value != "")
+			tableM.setName(textarea.value);
+		else
+			textarea.value = tableM.getName();
+	});
+	function clearNewLine(e) {
+		console.log(e.target);
+		let str = e.target.value.replace(/\r|\n|\t|\v/g, "");
+		e.target.value = str;
+	}
+	textarea.addEventListener("keyup", clearNewLine, true);
+	let fields = tableM.getFields();
+	for (let i = 0; i < fields.length; i++) {
+		let field = fields[i];
+		let initField = fpanel.getElementsByClassName("field initial")[0];
+		let DOMField = initField.cloneNode(true);
+		DOMField.classList.remove("initial");
+		for (let j = 0; j < DOMField.children.length; j++) {
+			let elem = DOMField.children[j];
+			switch(elem.getAttribute("data-content")) {
+				case "field-name": 
+					elem.textContent=field.name; 
+					elem.addEventListener("focusout", function(e) {
+						if (elem.value != "")
+							field.name = elem.value;
+						else
+							elem.value = field.name;
+					}, true);
+					elem.addEventListener("keyup", clearNewLine, true);
+					break;
+				case "field-type":
+					elem.textContent = field.type;
+					break;
+				case "field-details":
+					//TODO: добавить детализацию поля
+					break;
 			}
 		}
-		if (index==null) {
-			console.log(elem, tableList, "Таблица не найдена");
-			return false;
-		}
-		for (let i = 0; i < panels.length; i++) {
-			switch(panels[i].getAttribute("data-content")) {
-				case "table":
-					let text = document.createTextNode(tableList[index].getName());
-					panels[i].appendChild(text);
-					break;
-				case "fields":
-					let fields = tableList[index].getFields();
-					let table = document.createElement("table");
-					for (let j = 0; j < fields.length; j++) {
-						table.insertRow.innerHTML=fields[j];
-					}
-					break;
-				case "connectrions":
-					break;
-			}
-		}
-	} 
+		fpanel.appendChild(DOMField);
+	}	
 }
 
 function createTable(e) {
-	let table = document.createElement('table');
-	table.className = "table";
-	let header = table.createTHead();
-	table.tHead.insertRow(0).innerHTML = "<th colspan=\"8\" class=\"theader\">Table "+(tableList.length+1)+"</th>";
+	// let table = document.createElement('table');
+	// table.className = "table";
+	// let header = table.createTHead();
+	// table.tHead.insertRow(0).innerHTML = "<th colspan=\"8\" class=\"theader\">Table "+(tableList.length+1)+"</th>";
 
-	// let tFoot = document.createElement('tfoot');
-	// let th = document.createElement('th');
-	// th.colSpan=8;
-	// th.className="tfooter";
-	// let btn = document.createElement('button');
-	// btn.className="button";
-	// btn.innerHTML="Добавить...";
-	// th.appendChild(btn);
-	// tFoot.insertRow(0).appendChild(th);
-	// table.appendChild(tFoot);
+	// // let tFoot = document.createElement('tfoot');
+	// // let th = document.createElement('th');
+	// // th.colSpan=8;
+	// // th.className="tfooter";
+	// // let btn = document.createElement('button');
+	// // btn.className="button";
+	// // btn.innerHTML="Добавить...";
+	// // th.appendChild(btn);
+	// // tFoot.insertRow(0).appendChild(th);
+	// // table.appendChild(tFoot);
 
-	let tbody = document.createElement('tbody');
-	table.appendChild(tbody);
+	// let tbody = document.createElement('tbody');
+	// table.appendChild(tbody);
 
+	let initTable = canvas.getElementsByClassName("table initial")[0];
+	let table = initTable.cloneNode(true);
+	table.classList.remove("initial");
 	let canvasBox = getCanvasBoxOffset();
 	canvas.appendChild(table);
 	if ((e.pageX < canvasBox.x) || (e.pageY<canvasBox.y)) {
@@ -254,14 +281,13 @@ function createTable(e) {
 		}
 
 	}
-	makeDraggableTable(table);
-	makeSelectableTable(table);
-	let tableM = new tableManager(table, "Table" + (tableList.length+1));
+	let tableM = new tableManager(table);
 	tableM.appendField({
 		name: "lalal",
 		type: "int"
-	})
-	// btn.onclick = tableM.appendRow;
+	});
+	tableM.setName("Таблица" + tableList.length);
+	setSidebar(tableM);
 	tableList.push(tableM);
 }
 
