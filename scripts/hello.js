@@ -71,7 +71,7 @@ function tableManager(table) {
 			tbody.insertBefore(removed, tbody.children[insNum + 1]);
 	}
 	this.getFields = function() {
-		return fieldList.slice();
+		return fieldList; //доработать с .slice()
 	}
 	this.getName = function() {
 		return name;
@@ -187,7 +187,8 @@ function setSidebar(tableM) {
 	let tpanel = document.getElementById("table-panel");
 	let fpanel = document.getElementById("fields-panel");
 	let cpanel = document.getElementById("connections-panel");
-	let textarea = tpanel.getElementsByClassName("input")[0];
+	let fieldsTable = document.getElementById("fieldsTable");
+	let textarea = document.getElementById("tableName");
 	textarea.value = tableM.getName();
 	textarea.addEventListener("focusout", function(e) {
 		if (textarea.value != "")
@@ -196,62 +197,100 @@ function setSidebar(tableM) {
 			textarea.value = tableM.getName();
 	});
 	function clearNewLine(e) {
-		console.log(e.target);
 		let str = e.target.value.replace(/\r|\n|\t|\v/g, "");
 		e.target.value = str;
 	}
-	textarea.addEventListener("keyup", clearNewLine, true);
+	textarea.addEventListener("keyup", clearNewLine, false);
+
 	let fields = tableM.getFields();
 	for (let i = 0; i < fields.length; i++) {
 		let field = fields[i];
-		let initField = fpanel.getElementsByClassName("field initial")[0];
-		let DOMField = initField.cloneNode(true);
-		DOMField.classList.remove("initial");
-		for (let j = 0; j < DOMField.children.length; j++) {
-			let elem = DOMField.children[j];
-			switch(elem.getAttribute("data-content")) {
-				case "field-name": 
-					elem.textContent=field.name; 
-					elem.addEventListener("focusout", function(e) {
-						if (elem.value != "")
-							field.name = elem.value;
-						else
-							elem.value = field.name;
-					}, true);
-					elem.addEventListener("keyup", clearNewLine, true);
-					break;
-				case "field-type":
-					elem.textContent = field.type;
-					break;
-				case "field-details":
-					//TODO: добавить детализацию поля
-					break;
+
+		let row = fieldsTable.tBodies[0].getElementsByClassName("initial")[0].cloneNode(true);
+		fieldBinder(row, field);
+		fieldsTable.tBodies[0].appendChild(row);
+	}
+
+	function fieldBinder(HTMLrow, field) {
+		HTMLrow.classList.remove("initial");
+
+		let dragbtn = HTMLrow.cells[0].firstChild;
+		dragbtn.textContent = '\u21C5';
+
+		let input = HTMLrow.cells[1].firstChild;
+		input.value = field.name;
+		input.addEventListener("keyup", clearNewLine, false);
+		input.addEventListener("focusout", function(e) {
+			if (input.value != "")
+				field.name = input.value;
+			else
+				input.value = field.name;
+		});
+
+		let typebtn = HTMLrow.cells[2].firstChild;
+		typebtn.textContent = field.type;
+
+		let primChBox = HTMLrow.cells[3].firstChild;
+		primChBox.checked = (field.primK)? true: false;
+		primChBox.addEventListener("change", function(e) {
+			if (primChBox.checked)
+				field.primK = true;
+			else
+				field.primK = false;
+		});
+
+		let nullChBox = HTMLrow.cells[4].firstChild;
+		nullChBox.checked = (field.nullable)? true: false;
+		nullChBox.addEventListener("change", function(e) {
+			if (nullChBox.checked)
+				field.nullable = true;
+			else
+				field.nullable = false;
+		});
+
+		let detbtn = HTMLrow.cells[5].firstChild;
+
+		let delbtn = HTMLrow.cells[6].firstChild;
+		delbtn.onclick = function(e) {
+			let index = fields.indexOf(field);
+			if(index > -1) {
+				fields.splice(index, 1);
 			}
+			fieldsTable.tBodies[0].removeChild(HTMLrow);
+			console.log(tableM.getFields(), fields);
 		}
-		fpanel.appendChild(DOMField);
-	}	
+	}
+
+	let newFieldBtn = document.getElementById("addFieldBtn");
+	newFieldBtn.onclick = function(e) {
+		fields.push({
+			name: "поле" + fields.length,
+			type: "int",
+			nullable: false,
+			primK: false,
+			autoinc: false,
+			typeOpt1: null,
+			typeOpt2: null,
+			FK: null
+		});
+		let row = fieldsTable.tBodies[0].getElementsByClassName("initial")[0].cloneNode(true);
+		fieldBinder(row, fields[fields.length-1]);
+		row.classList.remove("initial");
+		fieldsTable.tBodies[0].appendChild(row);
+		console.log(tableM.getFields(), fields);
+	}
+}
+
+function unsetSidebar() { //<------------------------------ доделать
+	let tpanel = document.getElementById("table-panel");
+	tpanel.classList.add("disabled");
+	let fpanel = document.getElementById("fields-panel");
+	fpanel.classList.add("disabled");
+	let cpanel = document.getElementById("connections-panel");
+	cpanel.classList.add("disabled");	
 }
 
 function createTable(e) {
-	// let table = document.createElement('table');
-	// table.className = "table";
-	// let header = table.createTHead();
-	// table.tHead.insertRow(0).innerHTML = "<th colspan=\"8\" class=\"theader\">Table "+(tableList.length+1)+"</th>";
-
-	// // let tFoot = document.createElement('tfoot');
-	// // let th = document.createElement('th');
-	// // th.colSpan=8;
-	// // th.className="tfooter";
-	// // let btn = document.createElement('button');
-	// // btn.className="button";
-	// // btn.innerHTML="Добавить...";
-	// // th.appendChild(btn);
-	// // tFoot.insertRow(0).appendChild(th);
-	// // table.appendChild(tFoot);
-
-	// let tbody = document.createElement('tbody');
-	// table.appendChild(tbody);
-
 	let initTable = canvas.getElementsByClassName("table initial")[0];
 	let table = initTable.cloneNode(true);
 	table.classList.remove("initial");

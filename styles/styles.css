@@ -200,10 +200,55 @@ html {
 	font: inherit;
 	resize: none;
 	vertical-align: middle;
+	width: 95%;
+	float: middle;
 }
 .disabled {
-	
+	display: none;	
+}
+.field-list {
+	width: 100%;
+	margin: 0px;
+	border: 1px solid black;
+}
+.field-list tr:nth-child(1) {
+	width: 1em;
+}
+.field-list tr:nth-child(2) {
+	width: auto;
+}
+.field-list tr:nth-child(3) {
+	width: 30px;
+}
+.field-list tr:nth-child(4) {
+	width: 1em;
+}
+.field-list tr:nth-child(5) {
+	width: 1em;
+}
+.field-list tr:nth-child(6) {
+	width: 1em;
 }
 .initial {
 	display: none;
+}
+.field .input {
+	width: auto;
+}
+.dragbtn {
+	font: inherit;
+	content: '\21C5';
+	border: 1px solid black;
+	width: 1em;
+	padding: 0px;
+}
+.ftype-button {
+	font: inherit;
+	padding: 2px, 3px;
+	margin: 0px;
+	width: auto;
+
+}
+.ftype-button:after {
+	content: '\25BC';
 }

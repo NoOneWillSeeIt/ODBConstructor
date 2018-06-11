@@ -30,27 +30,46 @@
 		<div class="sidebar" id="sidebar">
 			<button class="accordion">Свойства таблицы</button>
 			<div class="panel" id="table-panel">
-				<p>Имя:</p><textarea rows="1" class="input" data-content="tableName"></textarea>
+				<p>Имя:</p><textarea rows="1" class="input" id="tableName"></textarea>
 			</div>
 			<button class="accordion">Поля</button>
 			<div class="panel" id="fields-panel">
-				<div class="field initial">
-					<div class="dragbtn"></div>
-					<textarea rows="1" class="input" data-content="field-name"></textarea>
-					<button data-content="field-type" class="button"> </button>
-					<div data-content="field-details">Det</div>
-					<button data-content="del btn">Del</button>
-				</div>
+				<table class="field-list" id="fieldsTable">
+					<thead>
+						<tr>
+							<td></td>
+							<td>Имя</td>
+							<td>Тип</td>
+							<td>PK</td>
+							<td>N</td>
+							<td></td>
+							<td></td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="initial">
+							<td><button class="dragbtn"></button></td>
+							<td><textarea rows="1" class="input"></textarea></td>
+							<td><button class="typebtn"></button></td>
+							<td><input type="checkbox" name="primK"></td>
+							<td><input type="checkbox" name="null"></td>
+							<td><button class="detbtn"></button></td>
+							<td><button class="delbtn"></button></td>
+						</tr>
+					</tbody>
+				</table>
+				<!-- <div class="field initial">
+					<button class="dragbtn"></button>
+					 <textarea rows="1" class="input" data-content="field-name"></textarea>
+					 <button data-content="field-type" class="ftype-button"> </button>
+					 <p><input type="checkbox" name="primK"></p>
+					 <p><input type="checkbox" name="null"></p>
+					 <button data-content="field-details">Det</button>
+					 <button data-content="del btn">Del</button>
+				</div> -->
 				<div class="f-additions initial">
 				</div>
-				<button class="button">Добавить</button>
-				<!-- <table class="fields">
-					<tfoot>
-						<tr><th colspan="8"><button class="button" data-action="updateFields">Добавить поле</button></th></tr>
-					</tfoot>
-					<tbody>
-					</tbody>
-				</table> -->
+				<button class="button" id="addFieldBtn">Добавить</button>
 			</div>
 			<button class="accordion">Связи</button>
 			<div class="panel" id="connections-panel">
