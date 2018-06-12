@@ -47,28 +47,28 @@
 						</tr>
 					</thead>
 					<tbody>
-						<tr class="initial">
-							<td><button class="dragbtn"></button></td>
-							<td><textarea rows="1" class="input"></textarea></td>
-							<td><button class="typebtn"></button></td>
+						<tr class="initial" data-content="field-param">
+							<td><button class="fieldbtn">&#8597;</button></td>
+							<td><textarea rows="1" class="input wide-input"></textarea></td>
+							<td><span class="input-wbtn"><textarea rows="1" class="input fixed-input" ></textarea><button class="fieldbtn">&#9881;</button></span></td>
 							<td><input type="checkbox" name="primK"></td>
-							<td><input type="checkbox" name="null"></td>
-							<td><button class="detbtn"></button></td>
-							<td><button class="delbtn"></button></td>
+							<td><input type="checkbox" name="nullable"></td>
+							<td><button class="fieldbtn">&#8230;</button></td>
+							<td><button class="fieldbtn">&#11198;</button></td>
+						</tr>
+						<tr class="initial" data-content="field-det">
+							<td colspan="8">
+								<div class="field-details">
+									<div><span><input type="checkbox" name="primK">Первичный ключ</span></div>
+									<div><span><input type="checkbox" name="nullable">Разрешить NULL</span></div>
+									<div><span><input type="checkbox" name="autoinc">Автоинкремент</span></div>
+									<div><p>Начальное значение:</p><textarea rows="1" class="input" name="idInitVal"></textarea></div>
+									<div><p>Шаг приращения</p><textarea rows="1" class="input" name="idStep"></textarea></div>
+								</div>
+							</td>
 						</tr>
 					</tbody>
 				</table>
-				<!-- <div class="field initial">
-					<button class="dragbtn"></button>
-					 <textarea rows="1" class="input" data-content="field-name"></textarea>
-					 <button data-content="field-type" class="ftype-button"> </button>
-					 <p><input type="checkbox" name="primK"></p>
-					 <p><input type="checkbox" name="null"></p>
-					 <button data-content="field-details">Det</button>
-					 <button data-content="del btn">Del</button>
-				</div> -->
-				<div class="f-additions initial">
-				</div>
 				<button class="button" id="addFieldBtn">Добавить</button>
 			</div>
 			<button class="accordion">Связи</button>
@@ -76,6 +76,43 @@
 				1231321
 			</div>
 		</div>
+	</div>
+	<div class="type-choose-box hidden" id="typeChooseBox">
+		<fieldset>
+			<legend>Числовой тип</legend>
+			<span><input type="radio" name="type" value="tinyint">tinyint</span>
+			<span><input type="radio" name="type" value="smallint">smallint</span>
+			<span><input type="radio" name="type" value="int">int</span>
+			<span><input type="radio" name="type" value="bigint">bigint</span>
+			<span><input type="radio" name="type" value="float(*)">float(*)</span>
+			<span><input type="radio" name="type" value="real">real</span>
+			<span><input type="radio" name="type" value="decimal(*,*)">decimal(*,*)</span>
+			<span><input type="radio" name="type" value="numeric(*,*)">numeric(*,*)</span>
+		</fieldset>
+		<fieldset>
+			<legend>Символьный тип</legend>
+			<span><input type="radio" name="type" value="char(*)">char(*)</span>
+			<span><input type="radio" name="type" value="nchar">nchar</span>
+			<span><input type="radio" name="type" value="varchar(*)">varchar(*)</span>
+			<span><input type="radio" name="type" value="nvarchar">nvarchar</span>
+			<span><input type="radio" name="type" value="text">text</span>
+			<span><input type="radio" name="type" value="ntext">ntext</span>
+			<span><input type="radio" name="type" value="tinytext">tinytext</span>
+		</fieldset>
+		<fieldset>
+			<legend>Дата и время</legend>
+			<span><input type="radio" name="type" value="date">date</span>
+			<span><input type="radio" name="type" value="datetime">datetime</span>
+			<span><input type="radio" name="type" value="timestamp">timestamp</span>
+			<span><input type="radio" name="type" value="time">time</span>
+		</fieldset>
+		<fieldset>
+			<legend>Другое</legend>
+			<span><input type="radio" name="type" value="blob">blob</span>
+			<span><input type="radio" name="type" value="binary">binary</span>
+			<span><input type="radio" name="type" value="bit">bit</span>
+		</fieldset>
+		<button class="button">Подтвердить</button>
 	</div>
 	<footer class="footer"><p>my footer</p></footer>
 </body>

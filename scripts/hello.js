@@ -9,10 +9,6 @@ function tableManager(table) {
 	let tbody = DOMtable.tBodies[0];
 
 	function field(options) {
-		if (options.name == undefined || options.type == undefined) {
-			alert("Неверные значения имени и типа поля");
-			return null;
-		}
 		this.name = options.name;
 		this.type = options.type;
 		this.nullable = options.nullable || false;
@@ -21,24 +17,25 @@ function tableManager(table) {
 		this.typeOpt1 = options.typeOpt1 || null;
 		this.typeOpt2 = options.typeOpt2 || null;
 		this.FK = options.FK || null;
+		this.idInitVal = options.idInitVal || null;
+		this.idStep = options.idStep || null;
 
 		this.editField = function(options) {
-			name = options.name || self.name;
-			type = options.type || self.type;
-			nullable = options.nullable || self.nullable;
-			primK = options.primK || self.primK;
-			autoinc = options.autoinc || self.autoinc;
-			typeOpt1 = options.typeOpt1 || self.typeOpt1;
-			typeOpt2 = options.typeOpt2 || self.typeOpt2;
-			FK = options.FK || self.FK;
+			this.name = options.name || this.name;
+			this.type = options.type || this.type;
+			this.nullable = options.nullable || this.nullable;
+			this.primK = options.primK || this.primK;
+			this.autoinc = options.autoinc || this.autoinc;
+			this.FK = options.FK || this.FK;
+			this.idInitVal = options.idInitVal || this.idInitVal;
+			this.idStep = options.idStep || this.idStep;
 		}
 	}
 
 	let fieldList = [];
 	this.updateHTML = function() {
-		while(tbody.hasChildNodes()) {
-			tbody.removeChild(0);
-		}
+		tbody.parentElement.replaceChild(document.createElement("tbody"), tbody);
+		tbody = DOMtable.tBodies[0];
 		for (let i = 0; i < fieldList.length; i++) {
 			let row = tbody.insertRow(-1);
 			row.insertCell(0).innerHTML = (fieldList[i].primK)? "+" : " ";
@@ -47,9 +44,9 @@ function tableManager(table) {
 			row.insertCell(3).innerHTML = "  ";
 		}
 	}
-	this.getFields = function(fields) {
+	this.setFields = function(fields) {
 		fieldList = fields.slice();
-		updateHTML();
+		this.updateHTML();
 	}
 	this.getHTMLTable = function(e) {
 		return DOMtable;
@@ -73,7 +70,9 @@ function tableManager(table) {
 		fieldList.splice(num, 1);
 	}
 	this.updateField = function(num, options) {
+		console.log(num, options, fieldList[num]);
 		fieldList[num].editField(options);
+		this.updateHTML();
 	}
 	this.moveRow = function(numSrc, numDst) {
 		let removed = fieldList.splice(numSrc, 1);
@@ -220,50 +219,137 @@ function setSidebar(tableM) {
 	let fields = tableM.getFields();
 	for (let i = 0; i < fields.length; i++) {
 		let field = fields[i];
-
-		let row = fieldsTable.tBodies[0].getElementsByClassName("initial")[0].cloneNode(true);
-		fieldBinder(row, field);
+		let initElems = fieldsTable.tBodies[0].getElementsByClassName("initial");
+		let row;
+		for (let j = 0; j < initElems.length; j++) {
+			if(initElems[j].getAttribute("data-content") == "field-param"){
+				row = initElems[j].cloneNode(true);
+				break;
+			}
+		}
+		fieldBinder(row, field, i);
 		fieldsTable.tBodies[0].appendChild(row);
 	}
 
-	function fieldBinder(HTMLrow, field) {
+	function fieldBinder(HTMLrow, field, index) {
 		HTMLrow.classList.remove("initial");
+
+		let checkBoxOnChange = function(e) {
+			console.log(this, this.name);
+			field[this.name] = this.checked? true: false;
+			let options = {
+				[this.name]: this.checked? true: false
+			};
+			tableM.updateField(index, options);
+		}
 
 		let dragbtn = HTMLrow.cells[0].firstChild;
 		dragbtn.textContent = '\u21C5';
 
 		let input = HTMLrow.cells[1].firstChild;
 		input.value = field.name;
-		input.addEventListener("keyup", clearNewLine, false);
+		input.addEventListener("keyup", clearNewLine, true);
 		input.addEventListener("focusout", function(e) {
-			if (input.value != "")
+			if (input.value != "") {
 				field.name = input.value;
+				tableM.updateField(index, { name: field.name});
+			}
 			else
 				input.value = field.name;
 		});
 
-		let typebtn = HTMLrow.cells[2].firstChild;
-		typebtn.textContent = field.type;
+		let typecell = HTMLrow.cells[2].firstChild;
+		let typeTextArea = typecell.firstChild;
+		let typeBtn = typecell.lastChild;
+		typeTextArea.value = field.type;
+		typeTextArea.addEventListener("keyup", clearNewLine, true);
+		typeTextArea.addEventListener("focusout", function(e) {
+			if(this.value != "") {
+				field.type = this.value;
+				tableM.updateField(index, { type: field.type});
+			}
+			else
+				this.value = field.type;
+		});
+		typeBtn.onclick = function(e) {
+			let chooseBox = document.getElementById("typeChooseBox");
+			chooseBox.classList.remove("hidden")
+			chooseBox.style.left = chooseBox.parentElement.offsetWidth
+			- chooseBox.offsetWidth + "px";
+			chooseBox.style.top = e.pageY - chooseBox.offsetHeight/2 - 10 + "px";
+			if (parseInt(chooseBox.style.top)<30)
+				chooseBox.style.top = "30px";
+			chooseBox.onmousedown = function(e) {e.stopPropagation();}
+			chooseBox.getElementsByTagName("button")[0].onclick = function(e) {
+				let collection = chooseBox.getElementsByTagName("input");
+				for (let i = 0; i < collection.length; i++) {
+					if(collection[i].checked) {
+						typeTextArea.value = collection[i].value;
+						field.type = typeTextArea.value;
+						tableM.updateField(index, { type: typeTextArea.value});
+						collection[i].checked = false;
+						break;
+					}
+				}
+				chooseBox.classList.add("hidden");
+			}			
+		}
 
 		let primChBox = HTMLrow.cells[3].firstChild;
 		primChBox.checked = (field.primK)? true: false;
-		primChBox.addEventListener("change", function(e) {
-			if (primChBox.checked)
-				field.primK = true;
-			else
-				field.primK = false;
-		});
+		primChBox.addEventListener("change", checkBoxOnChange, true);
 
 		let nullChBox = HTMLrow.cells[4].firstChild;
 		nullChBox.checked = (field.nullable)? true: false;
-		nullChBox.addEventListener("change", function(e) {
-			if (nullChBox.checked)
-				field.nullable = true;
-			else
-				field.nullable = false;
-		});
+		nullChBox.addEventListener("change", checkBoxOnChange, true);
 
 		let detbtn = HTMLrow.cells[5].firstChild;
+		detbtn.onclick = function(e) {
+			if(HTMLrow.nextElementSibling && HTMLrow.nextElementSibling.hasAttribute("data-content")) {
+				HTMLrow.parentElement.removeChild(HTMLrow.nextElementSibling);
+				return;
+			}
+			console.log(HTMLrow, HTMLrow.nextElementSibling);
+			let initElem = fieldsTable.tBodies[0].getElementsByClassName("initial");
+			let row;
+			for (let i = 0; i < initElem.length; i++) {
+				if (initElem[i].getAttribute("data-content")=="field-det"){
+					row = initElem[i].cloneNode(true);
+					break;
+				}
+			}
+
+			row.classList.remove("initial");
+			let cell = row.cells[0];
+			let inputElem = cell.getElementsByTagName("input");
+			let autoincCheck;
+			for (let i = 0; i < inputElem.length; i++) {
+				inputElem[i].checked = field[inputElem[i].name] ? true: false;
+				inputElem[i].addEventListener("change", checkBoxOnChange, true);
+				if(inputElem[i].getAttribute("name")=="autoinc")
+					autoincCheck=inputElem[i];
+			}
+			let cellText = cell.getElementsByTagName("textarea");
+			for (let i = 0; i < cellText.length; i++) {
+				cellText[i].addEventListener("keyup", clearNewLine, true);
+				cellText[i].addEventListener("focusout", function(e) {
+					field[this.name] = this.value;
+					tableM.updateField(index, {[this.name]: this.value});
+				});
+			}
+			autoincCheck.addEventListener("change", function(e) {
+				if(this.checked) {
+					cellText[0].classList.remove("disabled");
+					cellText[1].classList.remove("disabled");
+				}
+				else {
+					cellText[0].classList.add("disabled");
+					cellText[1].classList.add("disabled");
+				}
+			});
+			fieldsTable.tBodies[0].insertBefore(row, HTMLrow.nextSibling);
+			resizeAccordion(fpanel);
+		}
 
 		let delbtn = HTMLrow.cells[6].firstChild;
 		delbtn.onclick = function(e) {
@@ -274,7 +360,13 @@ function setSidebar(tableM) {
 			fieldsTable.tBodies[0].removeChild(HTMLrow);
 			console.log(tableM.getFields(), fields);
 			tableM.deleteField(index);
+			resizeAccordion(fpanel);
 		}
+	}
+
+	function resizeAccordion(elem) {
+		elem.style.maxHeight = "0px";
+		elem.style.maxHeight = elem.scrollHeight + "px";
 	}
 
 	let newFieldBtn = document.getElementById("addFieldBtn");
@@ -291,21 +383,22 @@ function setSidebar(tableM) {
 		};
 		fields.push(options);
 		let row = fieldsTable.tBodies[0].getElementsByClassName("initial")[0].cloneNode(true);
-		fieldBinder(row, fields[fields.length-1]);
+		fieldBinder(row, fields[fields.length-1], fields.length-1);
 		row.classList.remove("initial");
 		fieldsTable.tBodies[0].appendChild(row);
 		tableM.appendField(options);
+		resizeAccordion(fpanel);
 		console.log(tableM.getFields(), fields);
 	}
 }
 
 function unsetSidebar() { //<------------------------------ доделать
 	let tpanel = document.getElementById("table-panel");
-	tpanel.classList.add("disabled");
+	tpanel.classList.add("hidden");
 	let fpanel = document.getElementById("fields-panel");
-	fpanel.classList.add("disabled");
+	fpanel.classList.add("hidden");
 	let cpanel = document.getElementById("connections-panel");
-	cpanel.classList.add("disabled");	
+	cpanel.classList.add("hidden");	
 }
 
 function createTable(e) {

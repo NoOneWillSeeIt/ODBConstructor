@@ -201,54 +201,56 @@ html {
 	resize: none;
 	vertical-align: middle;
 	width: 95%;
-	float: middle;
+	overflow: hidden;
 }
-.disabled {
+.hidden {
 	display: none;	
 }
 .field-list {
 	width: 100%;
 	margin: 0px;
 	border: 1px solid black;
+	border-collapse: collapse;
+	border-spacing: 0px;
+	background: #F0F0F0;
 }
-.field-list tr:nth-child(1) {
-	width: 1em;
+.field-list * {
+	vertical-align: middle;
 }
-.field-list tr:nth-child(2) {
+.fieldbtn {
+	font: inherit;
+	border: 1px solid black;
+	width: 1.5em;
+	padding: 0px;
+	background: #0d91d9;
+	border: 1px solid #F0F0F0;
+	color: white;
+}
+.input-wbtn {
+	width: 6em;
+	padding: 0px;
+	margin: 0px;
+	white-space: nowrap;
+}
+.wide-input {
 	width: auto;
 }
-.field-list tr:nth-child(3) {
-	width: 30px;
-}
-.field-list tr:nth-child(4) {
-	width: 1em;
-}
-.field-list tr:nth-child(5) {
-	width: 1em;
-}
-.field-list tr:nth-child(6) {
-	width: 1em;
+.fixed-input {
+	width: 3.5em;
 }
 .initial {
 	display: none;
 }
-.field .input {
-	width: auto;
+.type-choose-box {
+	background: white;
+	position: absolute;
+	width: 400px;
+	border: 1px solid #0d91d9;
+	border-radius: 4px;
+	padding: 10px;
 }
-.dragbtn {
-	font: inherit;
-	content: '\21C5';
-	border: 1px solid black;
-	width: 1em;
-	padding: 0px;
-}
-.ftype-button {
-	font: inherit;
-	padding: 2px, 3px;
-	margin: 0px;
-	width: auto;
-
-}
-.ftype-button:after {
-	content: '\25BC';
+.field-details {
+	background: white;
+	border: 1px solid #0d91d9;
+	padding: 10px;
 }
