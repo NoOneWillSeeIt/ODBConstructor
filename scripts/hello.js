@@ -19,21 +19,39 @@ function tableManager(table) {
 		this.FK = options.FK || null;
 		this.idInitVal = options.idInitVal || null;
 		this.idStep = options.idStep || null;
+		this.size = options.size || null;
+		this.precision = options.precision || null;
+		let funclist = [];
 
 		this.editField = function(options) {
 			this.name = options.name || this.name;
 			this.type = options.type || this.type;
-			this.nullable = options.nullable || this.nullable;
-			this.primK = options.primK || this.primK;
-			this.autoinc = options.autoinc || this.autoinc;
+			this.nullable = (options.nullable!=null)? options.nullable: this.nullable;
+			this.primK = (options.primK!=null)? options.primK: this.primK;
+			this.autoinc = (options.autoinc!=null)? options.autoinc: this.autoinc;
 			this.FK = options.FK || this.FK;
 			this.idInitVal = options.idInitVal || this.idInitVal;
 			this.idStep = options.idStep || this.idStep;
+			this.size = options.size || this.size;
+			this.precision = options.precision || this.precision;
+			this.notify(options);
+		}
+		this.notify = function(options) {
+			for (var i = 0; i < funclist.length; i++) {
+				funclist[i](options);
+			}
+		}
+		this.subscribe = function(func) {
+			funclist.push(func);
+		}
+		this.unsubAll = function() {
+			funclist=[];
 		}
 	}
 
 	let fieldList = [];
 	this.updateHTML = function() {
+		console.log(this, fieldList);
 		tbody.parentElement.replaceChild(document.createElement("tbody"), tbody);
 		tbody = DOMtable.tBodies[0];
 		for (let i = 0; i < fieldList.length; i++) {
@@ -42,6 +60,11 @@ function tableManager(table) {
 			row.insertCell(1).innerHTML = fieldList[i].name;
 			row.insertCell(2).innerHTML = fieldList[i].type;
 			row.insertCell(3).innerHTML = "  ";
+		}
+	}
+	this.unsubAllFields = function() {
+		for (let i = 0; i < fieldList.length; i++) {
+			fieldList[i].unsubAll();
 		}
 	}
 	this.setFields = function(fields) {
@@ -64,13 +87,13 @@ function tableManager(table) {
 		row.insertCell(1).innerHTML = nfield.name;
 		row.insertCell(2).innerHTML = nfield.type;
 		row.insertCell(3).innerHTML = "  ";
+		return nfield;
 	}
 	this.deleteField = function(num) {
 		tbody.removeChild(tbody.rows[num]);
 		fieldList.splice(num, 1);
 	}
 	this.updateField = function(num, options) {
-		console.log(num, options, fieldList[num]);
 		fieldList[num].editField(options);
 		this.updateHTML();
 	}
@@ -199,27 +222,36 @@ function getCanvasBoxOffset() {
 
 function setSidebar(tableM) {
 	let tpanel = document.getElementById("table-panel");
+	tpanel.classList.remove("hidden");
 	let fpanel = document.getElementById("fields-panel");
+	fpanel.classList.remove("hidden");
 	let cpanel = document.getElementById("connections-panel");
+	cpanel.classList.remove("hidden");
 	let fieldsTable = document.getElementById("fieldsTable");
-	let textarea = document.getElementById("tableName");
-	textarea.value = tableM.getName();
-	textarea.addEventListener("focusout", function(e) {
-		if (textarea.value != "")
-			tableM.setName(textarea.value);
+	let tbody = fieldsTable.tBodies[0];
+	for(let i = tbody.children.length-1; i > 0; i--) {
+		if(!tbody.children[i].classList.contains("initial")) {
+			tbody.removeChild(tbody.children[i]);
+		}
+	}
+	let text = document.getElementById("tableName");
+	text.value = tableM.getName();
+	text.addEventListener("focusout", function(e) {
+		if (text.value != "")
+			tableM.setName(text.value);
 		else
-			textarea.value = tableM.getName();
+			text.value = tableM.getName();
 	});
-	function clearNewLine(e) {
-		let str = e.target.value.replace(/\r|\n|\t|\v/g, "");
+	function cleanInput(e) {
+		let str = e.target.value.replace(/[^а-яА-Яa-zA-Z0-9ёЁ\s]/g, "");
 		e.target.value = str;
 	}
-	textarea.addEventListener("keyup", clearNewLine, false);
-
+	text.addEventListener("keyup", cleanInput, true);
+	let initElems = tbody.getElementsByClassName("initial");
 	let fields = tableM.getFields();
 	for (let i = 0; i < fields.length; i++) {
 		let field = fields[i];
-		let initElems = fieldsTable.tBodies[0].getElementsByClassName("initial");
+		fields[i].index = i;
 		let row;
 		for (let j = 0; j < initElems.length; j++) {
 			if(initElems[j].getAttribute("data-content") == "field-param"){
@@ -227,20 +259,19 @@ function setSidebar(tableM) {
 				break;
 			}
 		}
+		tbody.appendChild(row);
 		fieldBinder(row, field, i);
-		fieldsTable.tBodies[0].appendChild(row);
 	}
 
-	function fieldBinder(HTMLrow, field, index) {
+	function fieldBinder(HTMLrow, field) {
 		HTMLrow.classList.remove("initial");
 
 		let checkBoxOnChange = function(e) {
-			console.log(this, this.name);
-			field[this.name] = this.checked? true: false;
 			let options = {
-				[this.name]: this.checked? true: false
+				[this.name]: this.checked
 			};
-			tableM.updateField(index, options);
+			field.editField(options);
+			tableM.updateField(field.index, options);
 		}
 
 		let dragbtn = HTMLrow.cells[0].firstChild;
@@ -248,11 +279,11 @@ function setSidebar(tableM) {
 
 		let input = HTMLrow.cells[1].firstChild;
 		input.value = field.name;
-		input.addEventListener("keyup", clearNewLine, true);
+		input.addEventListener("keyup", cleanInput, true);
 		input.addEventListener("focusout", function(e) {
 			if (input.value != "") {
 				field.name = input.value;
-				tableM.updateField(index, { name: field.name});
+				tableM.updateField(field.index, { name: field.name});
 			}
 			else
 				input.value = field.name;
@@ -262,11 +293,11 @@ function setSidebar(tableM) {
 		let typeTextArea = typecell.firstChild;
 		let typeBtn = typecell.lastChild;
 		typeTextArea.value = field.type;
-		typeTextArea.addEventListener("keyup", clearNewLine, true);
+		typeTextArea.addEventListener("keyup", cleanInput, true);
 		typeTextArea.addEventListener("focusout", function(e) {
 			if(this.value != "") {
 				field.type = this.value;
-				tableM.updateField(index, { type: field.type});
+				tableM.updateField(field.index, { type: field.type});
 			}
 			else
 				this.value = field.type;
@@ -286,7 +317,7 @@ function setSidebar(tableM) {
 					if(collection[i].checked) {
 						typeTextArea.value = collection[i].value;
 						field.type = typeTextArea.value;
-						tableM.updateField(index, { type: typeTextArea.value});
+						tableM.updateField(field.index, { type: typeTextArea.value});
 						collection[i].checked = false;
 						break;
 					}
@@ -298,74 +329,116 @@ function setSidebar(tableM) {
 		let primChBox = HTMLrow.cells[3].firstChild;
 		primChBox.checked = (field.primK)? true: false;
 		primChBox.addEventListener("change", checkBoxOnChange, true);
+		field.subscribe(function(opts){
+			primChBox.checked = (opts.primK!=null)? opts.primK: primChBox.checked;
+		});
 
 		let nullChBox = HTMLrow.cells[4].firstChild;
 		nullChBox.checked = (field.nullable)? true: false;
 		nullChBox.addEventListener("change", checkBoxOnChange, true);
-
-		let detbtn = HTMLrow.cells[5].firstChild;
-		detbtn.onclick = function(e) {
-			if(HTMLrow.nextElementSibling && HTMLrow.nextElementSibling.hasAttribute("data-content")) {
-				HTMLrow.parentElement.removeChild(HTMLrow.nextElementSibling);
+		field.subscribe(function(opts) {
+			if (opts.primK) {
+				nullChBox.checked = false;
+				nullChBox.disabled = true;
 				return;
 			}
-			console.log(HTMLrow, HTMLrow.nextElementSibling);
-			let initElem = fieldsTable.tBodies[0].getElementsByClassName("initial");
-			let row;
-			for (let i = 0; i < initElem.length; i++) {
-				if (initElem[i].getAttribute("data-content")=="field-det"){
-					row = initElem[i].cloneNode(true);
-					break;
-				}
+			if (opts.primK == false) {
+				nullChBox.disabled = false;
 			}
+			nullChBox.checked = (opts.nullable!=null)? opts.nullable: nullChBox.checked;
+		});
 
-			row.classList.remove("initial");
-			let cell = row.cells[0];
+		let detbtn = HTMLrow.cells[5].firstChild;
+		let detRow;
+		for (let i = 0; i < initElems.length; i++) {
+			if (initElems[i].getAttribute("data-content")=="field-det"){
+				detRow = initElems[i].cloneNode(true);
+				break;
+			}
+		}
+		new function createDetailRow() {
+			let cell = detRow.cells[0];
 			let inputElem = cell.getElementsByTagName("input");
 			let autoincCheck;
+			let cellText = [];
 			for (let i = 0; i < inputElem.length; i++) {
-				inputElem[i].checked = field[inputElem[i].name] ? true: false;
-				inputElem[i].addEventListener("change", checkBoxOnChange, true);
-				if(inputElem[i].getAttribute("name")=="autoinc")
-					autoincCheck=inputElem[i];
+				if(inputElem[i].type=="checkbox"){
+					inputElem[i].checked = field[inputElem[i].name] ? true: false;
+					inputElem[i].addEventListener("change", checkBoxOnChange, true);
+					if(inputElem[i].name=="autoinc")
+						autoincCheck=inputElem[i];
+					if(inputElem[i].name=="nullable") {
+						let nCB = inputElem[i];
+						field.subscribe(function(opts) {
+							if (opts.primK) {
+								nCB.checked = false;
+								nCB.disabled = true;
+								return;
+							}
+							if (opts.primK == false) {
+								nCB.disabled = false;
+							}
+							nCB.checked = (opts.nullable!=null)? opts.nullable: nCB.checked;
+						});
+					}
+					if(inputElem[i].name=="primK") {
+						let pCB = inputElem[i];
+						field.subscribe(function(opts){
+							pCB.checked = (opts.primK!=null)? opts.primK: pCB.checked;
+						});
+					}
+				}
+				if(inputElem[i].type=="text") {
+					inputElem[i].addEventListener("keyup", cleanInput, true);
+					inputElem[i].addEventListener("focusout", function(e) {
+						field[this.name] = this.value;
+						tableM.updateField(field.index, {[this.name]: this.value});
+					});
+					cellText.push(inputElem[i]);
+				}
 			}
-			let cellText = cell.getElementsByTagName("textarea");
-			for (let i = 0; i < cellText.length; i++) {
-				cellText[i].addEventListener("keyup", clearNewLine, true);
-				cellText[i].addEventListener("focusout", function(e) {
-					field[this.name] = this.value;
-					tableM.updateField(index, {[this.name]: this.value});
-				});
+			if(autoincCheck.checked) {
+				for (var i = 0; i < cellText.length; i++) {
+					cellText[i].disabled = false;
+					cellText[i].value = field[cellText[i].name];
+				}
+			} else {
+				for (var i = 0; i < cellText.length; i++)
+					cellText[i].disabled = true;
 			}
 			autoincCheck.addEventListener("change", function(e) {
 				if(this.checked) {
-					cellText[0].classList.remove("disabled");
-					cellText[1].classList.remove("disabled");
-				}
-				else {
-					cellText[0].classList.add("disabled");
-					cellText[1].classList.add("disabled");
+					for (var i = 0; i < cellText.length; i++)
+						cellText[i].disabled = false;
+				} else {
+					for (var i = 0; i < cellText.length; i++)
+						cellText[i].disabled = true;
 				}
 			});
-			fieldsTable.tBodies[0].insertBefore(row, HTMLrow.nextSibling);
+			tbody.insertBefore(detRow, HTMLrow.nextElementSibling);
+			detRow.classList.remove("initial");
+			detRow.classList.add("hidden");
+		}
+		detbtn.onclick = function(e) {
+			detRow.classList.toggle("hidden");
 			resizeAccordion(fpanel);
 		}
 
 		let delbtn = HTMLrow.cells[6].firstChild;
 		delbtn.onclick = function(e) {
-			let index = fields.indexOf(field);
-			if(index > -1) {
-				fields.splice(index, 1);
-			}
-			fieldsTable.tBodies[0].removeChild(HTMLrow);
-			console.log(tableM.getFields(), fields);
-			tableM.deleteField(index);
+			fields.splice(field.index, 1);
+			tbody.removeChild(HTMLrow);
+			tbody.removeChild(detRow);
+			tableM.deleteField(field.index);
 			resizeAccordion(fpanel);
+			for (let i = 0; i < fields.length; i++) {
+				fields[i].index = i;
+			}
 		}
 	}
 
 	function resizeAccordion(elem) {
-		elem.style.maxHeight = "0px";
+		elem.style.maxHeight = null;
 		elem.style.maxHeight = elem.scrollHeight + "px";
 	}
 
@@ -381,24 +454,54 @@ function setSidebar(tableM) {
 			typeOpt2: null,
 			FK: null
 		};
-		fields.push(options);
-		let row = fieldsTable.tBodies[0].getElementsByClassName("initial")[0].cloneNode(true);
-		fieldBinder(row, fields[fields.length-1], fields.length-1);
+		let nfield = tableM.appendField(options);
+		let row = tbody.getElementsByClassName("initial")[0].cloneNode(true);
 		row.classList.remove("initial");
-		fieldsTable.tBodies[0].appendChild(row);
-		tableM.appendField(options);
+		tbody.appendChild(row);
+		fieldBinder(row, nfield, fields.length);
+		fields.push(nfield);
 		resizeAccordion(fpanel);
-		console.log(tableM.getFields(), fields);
+		for (let i = 0; i < fields.length; i++) {
+				fields[i].index = i;
+		}
 	}
+	if(fpanel.previousElementSibling.classList.contains("active"))
+		resizeAccordion(fpanel);
 }
 
-function unsetSidebar() { //<------------------------------ доделать
+let accordions = document.getElementsByClassName("accordion");
+[].forEach.call(accordions, function (elem) {
+	elem.onclick = function(e) {
+		this.classList.toggle("active");
+		let panel = this.nextElementSibling;
+		if(panel.style.maxHeight)
+			panel.style.maxHeight = null;
+		else
+			panel.style.maxHeight = panel.scrollHeight + "px";
+	}
+});
+
+function unsetSidebar() {
 	let tpanel = document.getElementById("table-panel");
 	tpanel.classList.add("hidden");
 	let fpanel = document.getElementById("fields-panel");
 	fpanel.classList.add("hidden");
 	let cpanel = document.getElementById("connections-panel");
-	cpanel.classList.add("hidden");	
+	cpanel.classList.add("hidden");
+	[].forEach.call(accordions, function(elem) {
+		elem.classList.remove("active");
+		elem.nextElementSibling.style.maxHeight = null;
+	});
+	let fieldsTable = document.getElementById("fieldsTable");
+	let tbody = fieldsTable.tBodies[0];
+	for(let i = tbody.children.length-1; i > 0; i--) {
+		if(!tbody.children[i].classList.contains("initial")) {
+			tbody.removeChild(tbody.children[i]);
+		}
+	}
+	for (let i = 0; i < tableList.length; i++) {
+		tableList[i].unsubAllFields();
+	}
 }
 
 function createTable(e) {
@@ -449,15 +552,3 @@ function getElemCoords(elem) {
 		top: box.y + container.scrollTop
 	};
 }
-
-let accordions = document.getElementsByClassName("accordion");
-[].forEach.call(accordions, function (elem) {
-	elem.onclick = function(e) {
-		this.classList.toggle("active");
-		let panel = this.nextElementSibling;
-		if(panel.style.maxHeight)
-			panel.style.maxHeight = null;
-		else
-			panel.style.maxHeight = panel.scrollHeight + "px";
-	}
-});

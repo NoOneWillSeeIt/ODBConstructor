@@ -30,7 +30,7 @@
 		<div class="sidebar" id="sidebar">
 			<button class="accordion">Свойства таблицы</button>
 			<div class="panel" id="table-panel">
-				<p>Имя:</p><textarea rows="1" class="input" id="tableName"></textarea>
+				<p>Имя:</p><input type="text" class="input" id="tableName">
 			</div>
 			<button class="accordion">Поля</button>
 			<div class="panel" id="fields-panel">
@@ -49,8 +49,8 @@
 					<tbody>
 						<tr class="initial" data-content="field-param">
 							<td><button class="fieldbtn">&#8597;</button></td>
-							<td><textarea rows="1" class="input wide-input"></textarea></td>
-							<td><span class="input-wbtn"><textarea rows="1" class="input fixed-input" ></textarea><button class="fieldbtn">&#9881;</button></span></td>
+							<td><input type="text" class="input "></td>
+							<td><span class="input-wbtn"><input type="text" class="input fixed-input" ><button class="fieldbtn">&#9881;</button></span></td>
 							<td><input type="checkbox" name="primK"></td>
 							<td><input type="checkbox" name="nullable"></td>
 							<td><button class="fieldbtn">&#8230;</button></td>
@@ -62,8 +62,8 @@
 									<div><span><input type="checkbox" name="primK">Первичный ключ</span></div>
 									<div><span><input type="checkbox" name="nullable">Разрешить NULL</span></div>
 									<div><span><input type="checkbox" name="autoinc">Автоинкремент</span></div>
-									<div><p>Начальное значение:</p><textarea rows="1" class="input" name="idInitVal"></textarea></div>
-									<div><p>Шаг приращения</p><textarea rows="1" class="input" name="idStep"></textarea></div>
+									<div><p>Начальное значение:</p><input type="text" class="input" name="idInitVal"></div>
+									<div><p>Шаг приращения</p><input type="text"class="input" name="idStep"></div>
 								</div>
 							</td>
 						</tr>

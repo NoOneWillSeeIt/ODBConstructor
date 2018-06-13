@@ -51,6 +51,9 @@ html {
 	order: 2;
 	background-color: #eeeeee;
 	border-left: 2px solid #4286f4;
+	min-width: 300px;
+	width: 400px;
+	max-width: 500px;
 }
 #canvas {
 	flex: 4 1 auto;
@@ -200,7 +203,7 @@ html {
 	font: inherit;
 	resize: none;
 	vertical-align: middle;
-	width: 95%;
+	width: 98%;
 	overflow: hidden;
 }
 .hidden {
