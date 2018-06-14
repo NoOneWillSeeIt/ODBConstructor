@@ -2,6 +2,7 @@
 let body = document.body;
 let canvas = document.getElementById("canvas");
 let contextMenu = document.getElementById("canvas-context");
+let tbodyMenu = document.getElementById("tbodyContext");
 
 function tableManager(table) {
 	let name = "";
@@ -74,7 +75,6 @@ function tableManager(table) {
 	this.getHTMLTable = function(e) {
 		return DOMtable;
 	}
-
 	this.appendField = function(options) {
 		let nfield = new field(options);
 		if(nfield === null) {
@@ -110,6 +110,22 @@ function tableManager(table) {
 	this.getFields = function() {
 		return fieldList.slice();
 	}
+	this.getField = function(num) {
+		return fieldList[num];
+	}
+	this.getFieldCoords = function(field) {
+		let index = fieldList.indexOf(field);
+		let row = tbody.children[index];
+		let info = {
+			x: DOMtable.offsetLeft + row.offsetLeft,
+			y: DOMtable.offsetTop + row.offsetTop,
+			width: row.offsetWidth,
+			height: row.offsetHeight,
+			index: index,
+			table: DOMtable
+		}
+		return info;
+	}
 	this.getName = function() {
 		return name;
 	}
@@ -119,35 +135,171 @@ function tableManager(table) {
 	}
 	this.getConnections = function() {}
 
+	this.getClickedFieldParams = function(e) {
+		let row = e.target.parentElement;
+		let index;
+		for(let i = 0; i < tbody.children.length; i++) {
+			if(tbody.children[i] == row) {
+				index = i;
+				break;
+			}
+		}
+		let info = {
+			x: DOMtable.offsetLeft + row.offsetLeft,
+			y: DOMtable.offsetTop + row.offsetTop,
+			width: row.offsetWidth,
+			height: row.offsetHeight,
+			index: index,
+			HTML: row,
+			table: self
+		};
+		return info;
+	}
 	let self = this;
-	new function makeDraggable(DOMtable) {
-		table.tHead.onmousedown = mouseDown;
+	new function makeDraggable() {
+		DOMtable.tHead.onmousedown = mouseDown;
 		let shiftX = 0, shiftY = 0;
 		let canvasBox = {};
+		let connections = [];
 		function mouseDown(e) {
-			table.style.zIndex = 1000;
+			DOMtable.style.zIndex = 1000;
 			let clickCoords = getCanvasClickCoords(e);
 			shiftX = table.offsetLeft - clickCoords.left;
 			shiftY = table.offsetTop - clickCoords.top;
 			canvasBox = getCanvasBoxOffset();
 			setSidebar(self);
+			connections = conM.findAllConsByTable(self.DOMtable);
 			document.onmousemove = mouseDrag;
 			document.onmouseup = stopDrag;
 			document.onselectstart = function() {return false;}
 		}
 		function mouseDrag(e) {
 			canvasBox = getCanvasBoxOffset();
-			table.style.left = e.pageX - canvasBox.x + canvasBox.scrollLeft + shiftX + "px";
-			table.style.top = e.pageY - canvasBox.y + canvasBox.scrollTop + shiftY + "px";
+			for (let i = 0; i < connections.length; i++) {
+				conM.updateLine(connections[i]);
+			}
+			DOMtable.style.left = e.pageX - canvasBox.x + canvasBox.scrollLeft + shiftX + "px";
+			DOMtable.style.top = e.pageY - canvasBox.y + canvasBox.scrollTop + shiftY + "px";
 		}
 		function stopDrag(e) {
 			document.onmousemove = null;
 			document.onmouseup = null;
 			document.onselectstart = null;
-			table.style.zIndex = 0;
+			DOMtable.style.zIndex = 0;
 		}
 	}
 }
+
+let connectionManager = function() {
+	let connections = [];
+	let waitingEl = null;
+	let svg = document.getElementById("svgContainer");
+	let self = this;
+	this.bindBody = function(tableM) {
+		let tbody = tableM.getHTMLTable().tBodies[0];
+		tbody.oncontextmenu = function(e) {
+			let canvasBox = getCanvasBoxOffset();
+			let clickCoords = {
+				x: e.pageX + canvasBox.scrollLeft - canvasBox.x,
+				y: e.pageY + canvasBox.scrollTop - canvasBox.y
+			};
+			tbodyMenu.style.left = clickCoords.x + "px";
+			tbodyMenu.style.top = clickCoords.y + "px";
+			tbodyMenu.style.display = "block";
+
+			let canvasCSS = window.getComputedStyle(canvas);
+			let cMenuCS = window.getComputedStyle(tbodyMenu);
+
+			if (clickCoords.x + parseInt(cMenuCS.width) > parseInt(canvasCSS.width)) {
+				tbodyMenu.style.left = parseInt(canvasCSS.width) - parseInt(cMenuCS.width) - 
+					parseInt(cMenuCS.borderRight) - 10 + "px";
+			}
+			if (clickCoords.y + parseInt(cMenuCS.height) > parseInt(canvasCSS.height)) {
+				tbodyMenu.style.top = parseInt(canvasCSS.height) - parseInt(cMenuCS.height) -
+					parseInt(cMenuCS.borderBottom) - 10 + "px";
+			}
+			tbodyMenu.firstElementChild.onclick = function(e) {
+				let info = tableM.getClickedFieldParams(e);
+				info.HTML.classList.add("choosed-field");
+				self.waitingEl = info;
+				console.log(self, self.waitingEl);
+				tbodyMenu.style.display = "none";
+			}
+			e.preventDefault();
+			e.stopPropagation();
+		}
+		tbody.onmousedown = function(e) {
+			console.log(self);
+			if(self.waitingEl==null)
+				return;
+			let info = tableM.getClickedFieldParams(e);
+			let line = self.drawLine(self.waitingEl, info);
+			connections.push({ table1: info.table,
+								field1: info.table.getField(info.index),
+								table2: self.waitingEl.table,
+								index2: self.waitingEl.table.getField(self.waitingEl.index),
+								line: line
+			});
+			self.waitingEl = null;
+		}
+	}
+
+	this.drawLine = function(field1, field2) {
+		let points = calculatePoints(field1, field2);
+		let line = document.createElementNS(svg.namespaceURI, "polyline");
+		let strPoints = points.join(" ");
+		line.setAttributeNS(null, "points", strPoints);
+		line.setAttributeNS(null, "fill", "none");
+		line.setAttributeNS(null, "stroke", "black");
+		svg.appendChild(line);
+		return line;
+	}
+
+	function calculatePoints(field1, field2) {
+		let left, right;
+		let points=[];
+		if (field1.x > field2.x) {
+			left = field2;
+			right = field1;
+		} else {
+			left = field1;
+			right = field2;
+		}
+		if (left.width + left.x < right.x) {
+			let mid = right.x - (right.x - (left.x + left.width))/2;
+			points.push(left.x + "," + left.y);
+			points.push(mid + "," + left.y);
+			points.push(mid + "," + right.y);
+			points.push(right.x + "," + right.y);
+		} else {
+			let mid = right.x + right.width + 10;
+			points.push(left.x + "," + left.y);
+			points.push(mid + "," + left.y);
+			points.push(mid + "," + right.y);
+			points.push(right.x + "," + right.y);
+		}
+		return points;
+	}
+
+	this.findAllConsByTable = function(table) {
+		let lines = [];
+		for(let i = 0; i < connections.length; i++) {
+			if (connections[i].table1==table || connections[i].table2==table)
+				lines.push(connections[i]);
+		}
+		return lines;
+	}
+
+	this.updateLine = function(conn) {
+		let field1 = conn.table1.getFieldCoords(conn.field1);
+		let field2 = conn.table2.getFieldCoords(conn.field2);
+		let points = calculatePoints(field1, field2);
+		let strPoints = points.join(" ");
+		conn.line.setAttributeNS(null, "points", strPoints);
+	}
+}
+
+let conM = new connectionManager();
 
 let tableList=[];
 
@@ -182,11 +334,11 @@ canvas.oncontextmenu = function(e) {
 	let cMenuCS = window.getComputedStyle(contextMenu);
 
 	if (clickCoords.x + parseInt(cMenuCS.width) > parseInt(canvasCSS.width)) {
-		cMenu.style.left = parseInt(canvasCSS.width) - parseInt(cMenuCS.width) - 
+		contextMenu.style.left = parseInt(canvasCSS.width) - parseInt(cMenuCS.width) - 
 			parseInt(cMenuCS.borderRight) - 10 + "px";
 	}
 	if (clickCoords.y + parseInt(cMenuCS.height) > parseInt(canvasCSS.height)) {
-		cMenu.style.top = parseInt(canvasCSS.height) - parseInt(cMenuCS.height) -
+		contextMenu.style.top = parseInt(canvasCSS.height) - parseInt(cMenuCS.height) -
 			parseInt(cMenuCS.borderBottom) - 10 + "px";
 	}
 	return false;
@@ -246,7 +398,7 @@ function setSidebar(tableM) {
 		let str = e.target.value.replace(/[^а-яА-Яa-zA-Z0-9ёЁ\s]/g, "");
 		e.target.value = str;
 	}
-	text.addEventListener("keyup", cleanInput, true);
+	text.addEventListener("input", cleanInput, true);
 	let initElems = tbody.getElementsByClassName("initial");
 	let fields = tableM.getFields();
 	for (let i = 0; i < fields.length; i++) {
@@ -279,7 +431,7 @@ function setSidebar(tableM) {
 
 		let input = HTMLrow.cells[1].firstChild;
 		input.value = field.name;
-		input.addEventListener("keyup", cleanInput, true);
+		input.addEventListener("input", cleanInput, true);
 		input.addEventListener("focusout", function(e) {
 			if (input.value != "") {
 				field.name = input.value;
@@ -293,7 +445,7 @@ function setSidebar(tableM) {
 		let typeTextArea = typecell.firstChild;
 		let typeBtn = typecell.lastChild;
 		typeTextArea.value = field.type;
-		typeTextArea.addEventListener("keyup", cleanInput, true);
+		typeTextArea.addEventListener("input", cleanInput, true);
 		typeTextArea.addEventListener("focusout", function(e) {
 			if(this.value != "") {
 				field.type = this.value;
@@ -358,17 +510,16 @@ function setSidebar(tableM) {
 		}
 		new function createDetailRow() {
 			let cell = detRow.cells[0];
-			let inputElem = cell.getElementsByTagName("input");
+			let inputCheckElem = cell.querySelectorAll("input[type='checkbox']");
+			console.log(inputCheckElem);
 			let autoincCheck;
-			let cellText = [];
-			for (let i = 0; i < inputElem.length; i++) {
-				if(inputElem[i].type=="checkbox"){
-					inputElem[i].checked = field[inputElem[i].name] ? true: false;
-					inputElem[i].addEventListener("change", checkBoxOnChange, true);
-					if(inputElem[i].name=="autoinc")
-						autoincCheck=inputElem[i];
-					if(inputElem[i].name=="nullable") {
-						let nCB = inputElem[i];
+			for (let i = 0; i < inputCheckElem.length; i++) {
+					inputCheckElem[i].checked = field[inputCheckElem[i].name] ? true: false;
+					inputCheckElem[i].addEventListener("change", checkBoxOnChange, true);
+					if(inputCheckElem[i].name=="autoinc")
+						autoincCheck=inputCheckElem[i];
+					if(inputCheckElem[i].name=="nullable") {
+						let nCB = inputCheckElem[i];
 						field.subscribe(function(opts) {
 							if (opts.primK) {
 								nCB.checked = false;
@@ -381,38 +532,37 @@ function setSidebar(tableM) {
 							nCB.checked = (opts.nullable!=null)? opts.nullable: nCB.checked;
 						});
 					}
-					if(inputElem[i].name=="primK") {
-						let pCB = inputElem[i];
+					if(inputCheckElem[i].name=="primK") {
+						let pCB = inputCheckElem[i];
 						field.subscribe(function(opts){
 							pCB.checked = (opts.primK!=null)? opts.primK: pCB.checked;
 						});
 					}
-				}
-				if(inputElem[i].type=="text") {
-					inputElem[i].addEventListener("keyup", cleanInput, true);
-					inputElem[i].addEventListener("focusout", function(e) {
-						field[this.name] = this.value;
-						tableM.updateField(field.index, {[this.name]: this.value});
-					});
-					cellText.push(inputElem[i]);
-				}
+			}
+			let inputTextElem = cell.querySelectorAll("input[type='text']");
+			for (let i = 0; i < inputTextElem.length; i++) {
+				inputTextElem[i].addEventListener("input", cleanInput, true);
+				inputTextElem[i].addEventListener("focusout", function(e) {
+					field[this.name] = this.value;
+					tableM.updateField(field.index, {[this.name]: this.value});
+				});
 			}
 			if(autoincCheck.checked) {
-				for (var i = 0; i < cellText.length; i++) {
-					cellText[i].disabled = false;
-					cellText[i].value = field[cellText[i].name];
+				for (var i = 0; i < inputTextElem.length; i++) {
+					inputTextElem[i].disabled = false;
+					inputTextElem[i].value = field[inputTextElem[i].name];
 				}
 			} else {
-				for (var i = 0; i < cellText.length; i++)
-					cellText[i].disabled = true;
+				for (var i = 0; i < inputTextElem.length; i++)
+					inputTextElem[i].disabled = true;
 			}
 			autoincCheck.addEventListener("change", function(e) {
 				if(this.checked) {
-					for (var i = 0; i < cellText.length; i++)
-						cellText[i].disabled = false;
+					for (var i = 0; i < inputTextElem.length; i++)
+						inputTextElem[i].disabled = false;
 				} else {
-					for (var i = 0; i < cellText.length; i++)
-						cellText[i].disabled = true;
+					for (var i = 0; i < inputTextElem.length; i++)
+						inputTextElem[i].disabled = true;
 				}
 			});
 			tbody.insertBefore(detRow, HTMLrow.nextElementSibling);
@@ -541,6 +691,7 @@ function createTable(e) {
 	});
 	tableM.setName("Таблица" + tableList.length);
 	setSidebar(tableM);
+	conM.bindBody(tableM);
 	tableList.push(tableM);
 }
 
