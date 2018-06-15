@@ -2,7 +2,6 @@
 let body = document.body;
 let canvas = document.getElementById("canvas");
 let contextMenu = document.getElementById("canvas-context");
-let tbodyMenu = document.getElementById("tbodyContext");
 
 function tableManager(table) {
 	let name = "";
@@ -52,16 +51,17 @@ function tableManager(table) {
 
 	let fieldList = [];
 	this.updateHTML = function() {
-		console.log(this, fieldList);
 		tbody.parentElement.replaceChild(document.createElement("tbody"), tbody);
 		tbody = DOMtable.tBodies[0];
 		for (let i = 0; i < fieldList.length; i++) {
 			let row = tbody.insertRow(-1);
+			row.classList.add("table-row");
 			row.insertCell(0).innerHTML = (fieldList[i].primK)? "+" : " ";
 			row.insertCell(1).innerHTML = fieldList[i].name;
 			row.insertCell(2).innerHTML = fieldList[i].type;
 			row.insertCell(3).innerHTML = "  ";
 		}
+		setUpBody();
 	}
 	this.unsubAllFields = function() {
 		for (let i = 0; i < fieldList.length; i++) {
@@ -83,6 +83,7 @@ function tableManager(table) {
 		}
 		fieldList.push(nfield);
 		let row = tbody.insertRow(-1);
+		row.classList.add("table-row");
 		row.insertCell(0).innerHTML = (nfield.primK)? "+" : " ";
 		row.insertCell(1).innerHTML = nfield.name;
 		row.insertCell(2).innerHTML = nfield.type;
@@ -114,15 +115,21 @@ function tableManager(table) {
 		return fieldList[num];
 	}
 	this.getFieldCoords = function(field) {
-		let index = fieldList.indexOf(field);
+		let index;
+		for (let i = 0; i < fieldList.length; i++) {
+			if (fieldList[i]===field) {
+				index = i;
+				break;
+			}
+		}
 		let row = tbody.children[index];
 		let info = {
 			x: DOMtable.offsetLeft + row.offsetLeft,
 			y: DOMtable.offsetTop + row.offsetTop,
 			width: row.offsetWidth,
 			height: row.offsetHeight,
-			index: index,
-			table: DOMtable
+			HTMLfield: field,
+			table: self.DOMtable
 		}
 		return info;
 	}
@@ -149,12 +156,46 @@ function tableManager(table) {
 			y: DOMtable.offsetTop + row.offsetTop,
 			width: row.offsetWidth,
 			height: row.offsetHeight,
-			index: index,
-			HTML: row,
+			fieldObj: fieldList[index],
+			HTMLfield: row,
 			table: self
 		};
 		return info;
 	}
+
+	function setUpBody() {
+		tbody.onmousedown = function(e) {
+			e.stopPropagation();
+			let info = self.getClickedFieldParams(e);
+			if(!svgLM.waitingEl) {
+				svgLM.waitingEl = info;
+				info.HTMLfield.classList.add("choosed-field");
+				setSidebar(self);
+				return;
+			}
+			if(svgLM.waitingEl.table===info.table) {
+				svgLM.waitingEl.HTMLfield.classList.remove("choosed-field");
+				svgLM.waitingEl = null;
+				return;
+			}
+			let line = svgLM.drawLine(svgLM.waitingEl, info);
+			svgLM.connections.push({ table1: info.table,
+								field1: info.HTMLfield,
+								field1Obj: info.fieldObj,
+								table2: svgLM.waitingEl.table,
+								field2: svgLM.waitingEl.HTMLfield,
+								field2Obj: svgLM.waitingEl.fieldObj,
+								line: line
+			});
+			svgLM.waitingEl.HTMLfield.classList.remove("choosed-field");
+			svgLM.waitingEl = null;
+			setSidebar(self);
+		}
+		tbody.onselectstart = function() {return false;}
+	}
+
+	setUpBody();
+
 	let self = this;
 	new function makeDraggable() {
 		DOMtable.tHead.onmousedown = mouseDown;
@@ -168,7 +209,7 @@ function tableManager(table) {
 			shiftY = table.offsetTop - clickCoords.top;
 			canvasBox = getCanvasBoxOffset();
 			setSidebar(self);
-			connections = conM.findAllConsByTable(self.DOMtable);
+			connections = svgLM.findAllConsByTable(self);
 			document.onmousemove = mouseDrag;
 			document.onmouseup = stopDrag;
 			document.onselectstart = function() {return false;}
@@ -176,7 +217,7 @@ function tableManager(table) {
 		function mouseDrag(e) {
 			canvasBox = getCanvasBoxOffset();
 			for (let i = 0; i < connections.length; i++) {
-				conM.updateLine(connections[i]);
+				svgLM.updateLine(connections[i]);
 			}
 			DOMtable.style.left = e.pageX - canvasBox.x + canvasBox.scrollLeft + shiftX + "px";
 			DOMtable.style.top = e.pageY - canvasBox.y + canvasBox.scrollTop + shiftY + "px";
@@ -190,68 +231,19 @@ function tableManager(table) {
 	}
 }
 
-let connectionManager = function() {
-	let connections = [];
-	let waitingEl = null;
-	let svg = document.getElementById("svgContainer");
+let svgLineManager = function() {
+	this.connections = [];
+	this.waitingEl = null;
+	this.svg = document.getElementById("svgContainer");
 	let self = this;
-	this.bindBody = function(tableM) {
-		let tbody = tableM.getHTMLTable().tBodies[0];
-		tbody.oncontextmenu = function(e) {
-			let canvasBox = getCanvasBoxOffset();
-			let clickCoords = {
-				x: e.pageX + canvasBox.scrollLeft - canvasBox.x,
-				y: e.pageY + canvasBox.scrollTop - canvasBox.y
-			};
-			tbodyMenu.style.left = clickCoords.x + "px";
-			tbodyMenu.style.top = clickCoords.y + "px";
-			tbodyMenu.style.display = "block";
-
-			let canvasCSS = window.getComputedStyle(canvas);
-			let cMenuCS = window.getComputedStyle(tbodyMenu);
-
-			if (clickCoords.x + parseInt(cMenuCS.width) > parseInt(canvasCSS.width)) {
-				tbodyMenu.style.left = parseInt(canvasCSS.width) - parseInt(cMenuCS.width) - 
-					parseInt(cMenuCS.borderRight) - 10 + "px";
-			}
-			if (clickCoords.y + parseInt(cMenuCS.height) > parseInt(canvasCSS.height)) {
-				tbodyMenu.style.top = parseInt(canvasCSS.height) - parseInt(cMenuCS.height) -
-					parseInt(cMenuCS.borderBottom) - 10 + "px";
-			}
-			tbodyMenu.firstElementChild.onclick = function(e) {
-				let info = tableM.getClickedFieldParams(e);
-				info.HTML.classList.add("choosed-field");
-				self.waitingEl = info;
-				console.log(self, self.waitingEl);
-				tbodyMenu.style.display = "none";
-			}
-			e.preventDefault();
-			e.stopPropagation();
-		}
-		tbody.onmousedown = function(e) {
-			console.log(self);
-			if(self.waitingEl==null)
-				return;
-			let info = tableM.getClickedFieldParams(e);
-			let line = self.drawLine(self.waitingEl, info);
-			connections.push({ table1: info.table,
-								field1: info.table.getField(info.index),
-								table2: self.waitingEl.table,
-								index2: self.waitingEl.table.getField(self.waitingEl.index),
-								line: line
-			});
-			self.waitingEl = null;
-		}
-	}
-
 	this.drawLine = function(field1, field2) {
 		let points = calculatePoints(field1, field2);
-		let line = document.createElementNS(svg.namespaceURI, "polyline");
+		let line = document.createElementNS(self.svg.namespaceURI, "polyline");
 		let strPoints = points.join(" ");
 		line.setAttributeNS(null, "points", strPoints);
 		line.setAttributeNS(null, "fill", "none");
 		line.setAttributeNS(null, "stroke", "black");
-		svg.appendChild(line);
+		self.svg.appendChild(line);
 		return line;
 	}
 
@@ -265,6 +257,8 @@ let connectionManager = function() {
 			left = field1;
 			right = field2;
 		}
+		left.y = left.y + left.height/2;
+		right.y = right.y + right.height/2;
 		if (left.width + left.x < right.x) {
 			let mid = right.x - (right.x - (left.x + left.width))/2;
 			points.push(left.x + "," + left.y);
@@ -283,23 +277,43 @@ let connectionManager = function() {
 
 	this.findAllConsByTable = function(table) {
 		let lines = [];
-		for(let i = 0; i < connections.length; i++) {
-			if (connections[i].table1==table || connections[i].table2==table)
-				lines.push(connections[i]);
+		for(let i = 0; i < self.connections.length; i++) {
+			if (self.connections[i].table1==table || self.connections[i].table2==table)
+				lines.push(self.connections[i]);
 		}
 		return lines;
 	}
 
 	this.updateLine = function(conn) {
-		let field1 = conn.table1.getFieldCoords(conn.field1);
-		let field2 = conn.table2.getFieldCoords(conn.field2);
+		let field1 = conn.table1.getFieldCoords(conn.field1Obj);
+		let field2 = conn.table2.getFieldCoords(conn.field2Obj);
 		let points = calculatePoints(field1, field2);
 		let strPoints = points.join(" ");
 		conn.line.setAttributeNS(null, "points", strPoints);
 	}
+
+	this.deleteAllFieldConnections = function(field) {
+		for (let i = 0; i < self.connections.length; i++) {
+			if (self.connections[i].field1Obj===field || self.connections[i].field2Obj===field){
+				self.svg.removeChild(self.connections[i].line);
+				self.connections.splice(i, 1);
+				i--;
+			}
+		}
+	}
+
+	this.deleteConnection = function(conn) {
+		for (let i = 0; i < self.connections.length; i++) {
+			if (conn===self.connections[i]){
+				self.connections.splice(i, 1);
+				self.svg.removeChild(conn.line);
+				break;
+			}
+		}
+	}
 }
 
-let conM = new connectionManager();
+let svgLM = new svgLineManager();
 
 let tableList=[];
 
@@ -346,6 +360,10 @@ canvas.oncontextmenu = function(e) {
 
 document.onmousedown = function(e) {
 	contextMenu.style.display="none";
+	if (svgLM.waitingEl) {
+		svgLM.waitingEl.HTMLfield.classList.remove("choosed-field");
+		svgLM.waitingEl = null;
+	}	
 }
 
 let newTableBtn = document.getElementById("new-table-btn");
@@ -379,11 +397,18 @@ function setSidebar(tableM) {
 	fpanel.classList.remove("hidden");
 	let cpanel = document.getElementById("connections-panel");
 	cpanel.classList.remove("hidden");
-	let fieldsTable = document.getElementById("fieldsTable");
+	let fieldsTable = fpanel.firstElementChild;
 	let tbody = fieldsTable.tBodies[0];
 	for(let i = tbody.children.length-1; i > 0; i--) {
 		if(!tbody.children[i].classList.contains("initial")) {
 			tbody.removeChild(tbody.children[i]);
+		}
+	}
+	let conTable = cpanel.firstElementChild;
+	let conBody = conTable.tBodies[0];
+	for(let i = conBody.children.length-1; i > 0; i--) {
+		if(!conBody.children[i].classList.contains("initial")) {
+			conBody.removeChild(conBody.children[i]);
 		}
 	}
 	let text = document.getElementById("tableName");
@@ -415,6 +440,9 @@ function setSidebar(tableM) {
 		fieldBinder(row, field, i);
 	}
 
+	connectionBinder(tableM);
+
+
 	function fieldBinder(HTMLrow, field) {
 		HTMLrow.classList.remove("initial");
 
@@ -426,10 +454,10 @@ function setSidebar(tableM) {
 			tableM.updateField(field.index, options);
 		}
 
-		let dragbtn = HTMLrow.cells[0].firstChild;
+		let dragbtn = HTMLrow.cells[0].firstElementChild;
 		dragbtn.textContent = '\u21C5';
 
-		let input = HTMLrow.cells[1].firstChild;
+		let input = HTMLrow.cells[1].firstElementChild;
 		input.value = field.name;
 		input.addEventListener("input", cleanInput, true);
 		input.addEventListener("focusout", function(e) {
@@ -441,8 +469,8 @@ function setSidebar(tableM) {
 				input.value = field.name;
 		});
 
-		let typecell = HTMLrow.cells[2].firstChild;
-		let typeTextArea = typecell.firstChild;
+		let typecell = HTMLrow.cells[2].firstElementChild;
+		let typeTextArea = typecell.firstElementChild;
 		let typeBtn = typecell.lastChild;
 		typeTextArea.value = field.type;
 		typeTextArea.addEventListener("input", cleanInput, true);
@@ -478,14 +506,14 @@ function setSidebar(tableM) {
 			}			
 		}
 
-		let primChBox = HTMLrow.cells[3].firstChild;
+		let primChBox = HTMLrow.cells[3].firstElementChild;
 		primChBox.checked = (field.primK)? true: false;
 		primChBox.addEventListener("change", checkBoxOnChange, true);
 		field.subscribe(function(opts){
 			primChBox.checked = (opts.primK!=null)? opts.primK: primChBox.checked;
 		});
 
-		let nullChBox = HTMLrow.cells[4].firstChild;
+		let nullChBox = HTMLrow.cells[4].firstElementChild;
 		nullChBox.checked = (field.nullable)? true: false;
 		nullChBox.addEventListener("change", checkBoxOnChange, true);
 		field.subscribe(function(opts) {
@@ -500,7 +528,7 @@ function setSidebar(tableM) {
 			nullChBox.checked = (opts.nullable!=null)? opts.nullable: nullChBox.checked;
 		});
 
-		let detbtn = HTMLrow.cells[5].firstChild;
+		let detbtn = HTMLrow.cells[5].firstElementChild;
 		let detRow;
 		for (let i = 0; i < initElems.length; i++) {
 			if (initElems[i].getAttribute("data-content")=="field-det"){
@@ -511,7 +539,6 @@ function setSidebar(tableM) {
 		new function createDetailRow() {
 			let cell = detRow.cells[0];
 			let inputCheckElem = cell.querySelectorAll("input[type='checkbox']");
-			console.log(inputCheckElem);
 			let autoincCheck;
 			for (let i = 0; i < inputCheckElem.length; i++) {
 					inputCheckElem[i].checked = field[inputCheckElem[i].name] ? true: false;
@@ -574,16 +601,50 @@ function setSidebar(tableM) {
 			resizeAccordion(fpanel);
 		}
 
-		let delbtn = HTMLrow.cells[6].firstChild;
+		let delbtn = HTMLrow.cells[6].firstElementChild;
 		delbtn.onclick = function(e) {
+			svgLM.deleteAllFieldConnections(field);
 			fields.splice(field.index, 1);
 			tbody.removeChild(HTMLrow);
 			tbody.removeChild(detRow);
 			tableM.deleteField(field.index);
+			for(let i = conBody.children.length-1; i > 0; i--) {
+				if(!conBody.children[i].classList.contains("initial")) {
+					conBody.removeChild(conBody.children[i]);
+				}
+			}
+			connectionBinder(tableM);
 			resizeAccordion(fpanel);
+			resizeAccordion(cpanel);
 			for (let i = 0; i < fields.length; i++) {
 				fields[i].index = i;
 			}
+		}
+	}
+
+	function connectionBinder(tableM) {
+		let initRow = conBody.getElementsByClassName("initial")[0];
+		let cons = svgLM.findAllConsByTable(tableM);
+		console.log(cons);
+		for (let i = 0; i < cons.length; i++) {
+			let con = cons[i];
+			let row = initRow.cloneNode(true);
+			row.classList.remove("initial");
+			let fieldCell = row.cells[0];
+			fieldCell.textContent = 
+				(con.table1===tableM)? con.field1Obj.name: con.field2Obj.name;
+			let dstFieldCell = row.cells[1];
+			dstFieldCell.textContent = 
+				(con.table1===tableM)? 
+				con.table2.getName() +"."+ con.field2Obj.name: 
+				con.table1.getName() +"."+ con.field1Obj.name;
+			let delbtn = row.cells[2].firstElementChild;
+			delbtn.onclick = function(e) {
+				svgLM.deleteConnection(con);
+				conBody.removeChild(row);
+				resizeAccordion(cpanel);
+			}
+			conBody.appendChild(row);
 		}
 	}
 
@@ -617,6 +678,8 @@ function setSidebar(tableM) {
 	}
 	if(fpanel.previousElementSibling.classList.contains("active"))
 		resizeAccordion(fpanel);
+	if(cpanel.previousElementSibling.classList.contains("active"))
+		resizeAccordion(cpanel);
 }
 
 let accordions = document.getElementsByClassName("accordion");
@@ -642,11 +705,18 @@ function unsetSidebar() {
 		elem.classList.remove("active");
 		elem.nextElementSibling.style.maxHeight = null;
 	});
-	let fieldsTable = document.getElementById("fieldsTable");
+	let fieldsTable = fpanel.firstElementChild;
 	let tbody = fieldsTable.tBodies[0];
 	for(let i = tbody.children.length-1; i > 0; i--) {
 		if(!tbody.children[i].classList.contains("initial")) {
 			tbody.removeChild(tbody.children[i]);
+		}
+	}
+	let conTable = cpanel.firstElementChild;
+	let conBody = conTable.tBodies[0];
+	for(let i = conBody.children.length-1; i > 0; i--) {
+		if(!conBody.children[i].classList.contains("initial")) {
+			conBody.removeChild(conBody.children[i]);
 		}
 	}
 	for (let i = 0; i < tableList.length; i++) {
@@ -686,12 +756,11 @@ function createTable(e) {
 	}
 	let tableM = new tableManager(table);
 	tableM.appendField({
-		name: "lalal",
+		name: "Поле0",
 		type: "int"
 	});
 	tableM.setName("Таблица" + tableList.length);
 	setSidebar(tableM);
-	conM.bindBody(tableM);
 	tableList.push(tableM);
 }
 

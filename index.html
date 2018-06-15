@@ -19,10 +19,6 @@
 			<div id="canvas">
 				<div class="context-menu" id="canvas-context">
 				<button class="button" data-action="createTable">Новая таблица</button>
-				<button class="button">Новое соединение</button>
-				</div>
-				<div class="context-menu" id="tbodyContext">
-					<button class="button" data-action="createConnection">Создать соединение</button>
 				</div>
 				<table class="table initial">
 					<thead><tr><th colspan="8" class="theader"></th></tr></thead>
@@ -39,7 +35,7 @@
 			</div>
 			<button class="accordion">Поля</button>
 			<div class="panel" id="fields-panel">
-				<table class="field-list" id="fieldsTable">
+				<table class="field-list">
 					<thead>
 						<tr>
 							<td></td>
@@ -78,7 +74,22 @@
 			</div>
 			<button class="accordion">Связи</button>
 			<div class="panel" id="connections-panel">
-				1231321
+				<table class="field-list">
+					<thead>
+						<tr>
+							<td>Поле</td>
+							<td>Поле назначения</td>
+							<td></td>
+						</tr>
+					</thead>
+					<tbody>
+						<tr class="initial">
+							<td></td>
+							<td></td>
+							<td><button class="fieldbtn">&#11198;</button></td>
+						</tr>
+					</tbody>
+				</table>
 			</div>
 		</div>
 	</div>

@@ -113,10 +113,11 @@ html {
 	color: white;
 	background-color: black; 
 }
-.table tr {
+.table-row {
 	margin: 0px;
 	color: black;
 	background-color: white;
+	cursor: cell;
 }
 
 .table td {
@@ -229,6 +230,9 @@ html {
 	border: 1px solid #F0F0F0;
 	color: white;
 }
+.fieldbtn:hover {
+	background-color: #0a71a9;
+}
 .input-wbtn {
 	width: 6em;
 	padding: 0px;
@@ -256,4 +260,8 @@ html {
 	background: white;
 	border: 1px solid #0d91d9;
 	padding: 10px;
+}
+.choosed-field {
+	color: white;
+	background-color: #0d91d9;
 }
