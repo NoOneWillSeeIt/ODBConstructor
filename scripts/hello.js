@@ -51,6 +51,7 @@ function tableManager(table) {
 
 	let fieldList = [];
 	this.updateHTML = function() {
+		DOMtable.tHead.rows[0].cells[0].textContent = name;
 		tbody.parentElement.replaceChild(document.createElement("tbody"), tbody);
 		tbody = DOMtable.tBodies[0];
 		for (let i = 0; i < fieldList.length; i++) {
@@ -62,6 +63,9 @@ function tableManager(table) {
 			row.insertCell(3).innerHTML = "  ";
 		}
 		setUpBody();
+	}
+	this.deleteHTMLTable = function() {
+		canvas.removeChild(DOMtable);
 	}
 	this.unsubAllFields = function() {
 		for (let i = 0; i < fieldList.length; i++) {
@@ -311,6 +315,16 @@ let svgLineManager = function() {
 			}
 		}
 	}
+
+	this.deleteAllTableConnections = function(table) {
+		for (let i = 0; i < self.connections.length; i++) {
+			if (self.connections[i].table1===table || self.connections[i].table2===table) {
+				self.svg.removeChild(self.connections[i].line);
+				self.connections.splice(i, 1);
+				i--;
+			}
+		}
+	}
 }
 
 let svgLM = new svgLineManager();
@@ -389,7 +403,7 @@ function getCanvasBoxOffset() {
 	};
 }
 
-
+let temp;
 function setSidebar(tableM) {
 	let tpanel = document.getElementById("table-panel");
 	tpanel.classList.remove("hidden");
@@ -413,12 +427,20 @@ function setSidebar(tableM) {
 	}
 	let text = document.getElementById("tableName");
 	text.value = tableM.getName();
-	text.addEventListener("focusout", function(e) {
+	text.removeEventListener("focusout", temp);
+	temp = function() {
 		if (text.value != "")
 			tableM.setName(text.value);
 		else
 			text.value = tableM.getName();
-	});
+	};
+	text.addEventListener("focusout", temp);
+	// text.addEventListener("focusout", function(e) {
+	// 	if (text.value != "")
+	// 		tableM.setName(text.value);
+	// 	else
+	// 		text.value = tableM.getName();
+	// });
 	function cleanInput(e) {
 		let str = e.target.value.replace(/[^а-яА-Яa-zA-Z0-9ёЁ\s]/g, "");
 		e.target.value = str;
@@ -625,7 +647,6 @@ function setSidebar(tableM) {
 	function connectionBinder(tableM) {
 		let initRow = conBody.getElementsByClassName("initial")[0];
 		let cons = svgLM.findAllConsByTable(tableM);
-		console.log(cons);
 		for (let i = 0; i < cons.length; i++) {
 			let con = cons[i];
 			let row = initRow.cloneNode(true);
@@ -676,10 +697,26 @@ function setSidebar(tableM) {
 				fields[i].index = i;
 		}
 	}
+	if(tpanel.previousElementSibling.classList.contains("active"))
+		resizeAccordion(tpanel);
 	if(fpanel.previousElementSibling.classList.contains("active"))
 		resizeAccordion(fpanel);
 	if(cpanel.previousElementSibling.classList.contains("active"))
 		resizeAccordion(cpanel);
+	let delbtn = tpanel.getElementsByClassName("delbutton")[0];
+	delbtn.onclick = function(e) {
+		svgLM.deleteAllTableConnections(tableM);
+		let index;
+		for (let i = 0; i < tableList.length; i++) {
+			if(tableM === tableList[i]) {
+				index = i;
+				break;
+			}
+		}
+		tableList[index].deleteHTMLTable();
+		tableList.splice(index, 1);
+		unsetSidebar();
+	}
 }
 
 let accordions = document.getElementsByClassName("accordion");

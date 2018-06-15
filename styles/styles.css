@@ -78,6 +78,16 @@ html {
 	transition-duration: 0.2s;
 	-webkit-transition-duration: 0.2s;
 }
+.delbutton {
+	margin: 0.5em auto;
+	background-color: #ff4d4d;
+	color: white;
+	padding: 4px 8px;
+	border-radius: 2px;
+	width: 160px;
+	font-weight: bold;
+	display: block;
+}
 .table {
 	position: absolute;
 	padding: 0px;
@@ -87,11 +97,6 @@ html {
 	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
 	border-radius: 4px 4px 2px 2px;
 }
-/*.theader {
-	margin: 0px;
-	padding: 5px;
-	color: white;
-}*/
 .theader {
 	align-self: center;
 	cursor: move;
@@ -101,7 +106,6 @@ html {
 	color: white;
 	background: linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1));
 }
-/*.table */
 .tfooter {
 	color: white;
 	margin: 0px;

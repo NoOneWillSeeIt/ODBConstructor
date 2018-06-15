@@ -10,7 +10,7 @@
 	<header class="header">
 		<button class="button" id="new-table-btn">Новая таблица</button><!--
 		--><button class="button">Новое соединение</button><!--
-		--><button class="button">Сгенерировать SQL</button><!--
+		--><button class="button" id="generateSQL">Сгенерировать SQL</button><!--
 		--><button class="button">Режим обучения</button><!--
 		--><button class="button">Горячие клавиши</button>
 	</header>
@@ -32,6 +32,7 @@
 			<button class="accordion">Свойства таблицы</button>
 			<div class="panel" id="table-panel">
 				<p>Имя:</p><input type="text" class="input" id="tableName">
+				<button class="button delbutton">Удалить таблицу</button>
 			</div>
 			<button class="accordion">Поля</button>
 			<div class="panel" id="fields-panel">
