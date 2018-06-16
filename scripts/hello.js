@@ -14,8 +14,6 @@ function tableManager(table) {
 		this.nullable = options.nullable || false;
 		this.primK = options.primK || false;
 		this.autoinc = options.autoinc || false;
-		this.typeOpt1 = options.typeOpt1 || null;
-		this.typeOpt2 = options.typeOpt2 || null;
 		this.FK = options.FK || null;
 		this.idInitVal = options.idInitVal || null;
 		this.idStep = options.idStep || null;
@@ -60,7 +58,6 @@ function tableManager(table) {
 			row.insertCell(0).innerHTML = (fieldList[i].primK)? "+" : " ";
 			row.insertCell(1).innerHTML = fieldList[i].name;
 			row.insertCell(2).innerHTML = fieldList[i].type;
-			row.insertCell(3).innerHTML = "  ";
 		}
 		setUpBody();
 	}
@@ -91,7 +88,6 @@ function tableManager(table) {
 		row.insertCell(0).innerHTML = (nfield.primK)? "+" : " ";
 		row.insertCell(1).innerHTML = nfield.name;
 		row.insertCell(2).innerHTML = nfield.type;
-		row.insertCell(3).innerHTML = "  ";
 		return nfield;
 	}
 	this.deleteField = function(num) {
@@ -144,8 +140,6 @@ function tableManager(table) {
 		name = tname || name;
 		DOMtable.tHead.rows[0].cells[0].textContent = name;
 	}
-	this.getConnections = function() {}
-
 	this.getClickedFieldParams = function(e) {
 		let row = e.target.parentElement;
 		let index;
@@ -160,7 +154,7 @@ function tableManager(table) {
 			y: DOMtable.offsetTop + row.offsetTop,
 			width: row.offsetWidth,
 			height: row.offsetHeight,
-			fieldObj: fieldList[index],
+			field: fieldList[index],
 			HTMLfield: row,
 			table: self
 		};
@@ -183,12 +177,12 @@ function tableManager(table) {
 				return;
 			}
 			let line = svgLM.drawLine(svgLM.waitingEl, info);
-			svgLM.connections.push({ table1: info.table,
-								field1: info.HTMLfield,
-								field1Obj: info.fieldObj,
-								table2: svgLM.waitingEl.table,
-								field2: svgLM.waitingEl.HTMLfield,
-								field2Obj: svgLM.waitingEl.fieldObj,
+			svgLM.connections.push({ table1: svgLM.waitingEl.table,
+								field1HTML: svgLM.waitingEl.HTMLfield,
+								field1: svgLM.waitingEl.field,
+								table2: info.table,
+								field2HTML: info.HTMLfield,
+								field2: info.field,
 								line: line
 			});
 			svgLM.waitingEl.HTMLfield.classList.remove("choosed-field");
@@ -289,8 +283,8 @@ let svgLineManager = function() {
 	}
 
 	this.updateLine = function(conn) {
-		let field1 = conn.table1.getFieldCoords(conn.field1Obj);
-		let field2 = conn.table2.getFieldCoords(conn.field2Obj);
+		let field1 = conn.table1.getFieldCoords(conn.field1);
+		let field2 = conn.table2.getFieldCoords(conn.field2);
 		let points = calculatePoints(field1, field2);
 		let strPoints = points.join(" ");
 		conn.line.setAttributeNS(null, "points", strPoints);
@@ -298,7 +292,7 @@ let svgLineManager = function() {
 
 	this.deleteAllFieldConnections = function(field) {
 		for (let i = 0; i < self.connections.length; i++) {
-			if (self.connections[i].field1Obj===field || self.connections[i].field2Obj===field){
+			if (self.connections[i].field1===field || self.connections[i].field2===field){
 				self.svg.removeChild(self.connections[i].line);
 				self.connections.splice(i, 1);
 				i--;
@@ -374,6 +368,8 @@ canvas.oncontextmenu = function(e) {
 
 document.onmousedown = function(e) {
 	contextMenu.style.display="none";
+	let chooseBox = document.getElementById("typeChooseBox");
+			chooseBox.classList.add("hidden");
 	if (svgLM.waitingEl) {
 		svgLM.waitingEl.HTMLfield.classList.remove("choosed-field");
 		svgLM.waitingEl = null;
@@ -435,12 +431,6 @@ function setSidebar(tableM) {
 			text.value = tableM.getName();
 	};
 	text.addEventListener("focusout", temp);
-	// text.addEventListener("focusout", function(e) {
-	// 	if (text.value != "")
-	// 		tableM.setName(text.value);
-	// 	else
-	// 		text.value = tableM.getName();
-	// });
 	function cleanInput(e) {
 		let str = e.target.value.replace(/[^а-яА-Яa-zA-Z0-9ёЁ\s]/g, "");
 		e.target.value = str;
@@ -506,7 +496,7 @@ function setSidebar(tableM) {
 		});
 		typeBtn.onclick = function(e) {
 			let chooseBox = document.getElementById("typeChooseBox");
-			chooseBox.classList.remove("hidden")
+			chooseBox.classList.remove("hidden");
 			chooseBox.style.left = chooseBox.parentElement.offsetWidth
 			- chooseBox.offsetWidth + "px";
 			chooseBox.style.top = e.pageY - chooseBox.offsetHeight/2 - 10 + "px";
@@ -653,12 +643,12 @@ function setSidebar(tableM) {
 			row.classList.remove("initial");
 			let fieldCell = row.cells[0];
 			fieldCell.textContent = 
-				(con.table1===tableM)? con.field1Obj.name: con.field2Obj.name;
+				(con.table1===tableM)? con.field1.name: con.field2.name;
 			let dstFieldCell = row.cells[1];
 			dstFieldCell.textContent = 
 				(con.table1===tableM)? 
-				con.table2.getName() +"."+ con.field2Obj.name: 
-				con.table1.getName() +"."+ con.field1Obj.name;
+				con.table2.getName() +"."+ con.field2.name: 
+				con.table1.getName() +"."+ con.field1.name;
 			let delbtn = row.cells[2].firstElementChild;
 			delbtn.onclick = function(e) {
 				svgLM.deleteConnection(con);
@@ -808,4 +798,104 @@ function getElemCoords(elem) {
 		left: box.x + container.scrollLeft,
 		top: box.y + container.scrollTop
 	};
+}
+
+let genSQL = document.getElementById("generateSQL");
+genSQL.onclick = function(e) {
+	let sqlForm = document.getElementById("sql-form");
+	let coverDiv = document.createElement("div");
+	coverDiv.id = "cover-div";
+	coverDiv.onmousedown = function(e){e.stopPropagation();}
+	document.body.appendChild(coverDiv);
+	sqlForm.style.display = "block";
+	let radioBtns = sqlForm.querySelectorAll("input[type='radio']");
+	let sqlTextElem = sqlForm.getElementsByClassName("sql-query")[0];
+	for(let i = 0; i < radioBtns.length; i++) {
+		radioBtns[i].onchange = function(e) {
+			if (this.checked) {
+				let query;
+				if (this.value == "MSSQLServer")
+					query = createMSSQLQuery();
+				if (this.value == "MySQL") 
+					query = createMySQLQuery();
+				console.log(this, this.value, sqlTextElem);
+				sqlTextElem.removeAttribute("readonly");
+				sqlTextElem.value = query;
+				sqlTextElem.setAttribute("readonly", "true");
+			}
+		}
+	}
+	radioBtns[0].checked = true;
+	radioBtns[0].onchange();
+	function createMSSQLQuery() {
+		let tableCreateStr = "";
+		for (let i = 0; i < tableList.length; i++) {
+			tableCreateStr += "CREATE TABLE " + tableList[i].getName() + "(\n";
+			let fields = tableList[i].getFields();
+			for (let i = 0; i < fields.length; i++) {
+				tableCreateStr += fields[i].name + " " + fields[i].type;
+				if(!fields[i].nullable)
+					tableCreateStr += " NOT NULL";
+				if(fields[i].autoinc){
+					if (!fields[i].idInitVal)
+						fields[i].idInitVal=1;
+					if (!fields[i].idStep)
+						fields[i].idStep=1;
+					tableCreateStr += " IDENTITY("+
+						fields[i].idInitVal+","+fields[i].idStep+")";
+				}
+				if(fields[i].primK)
+					tableCreateStr += " PRIMARY KEY";
+				tableCreateStr += ",\n";
+			}
+			tableCreateStr += ");\n GO\n";
+		}
+		let connCreateStr = "";
+		for(let i = 0; i < svgLM.connections.length; i++) {
+			let con = svgLM.connections[i];
+			connCreateStr += "ALTER TABLE " + con.table1.getName() + 
+				" ADD CONSTRAINT " + "FK_" + con.table1.getName() + con.field1.name +
+				"_" + con.table2.getName() + con.field2.name + " FOREIGN KEY (" +
+				con.field1.name + ") REFERENCES " + con.table2.getName() + "(" + 
+				con.field2.name + ")\n ON DELETE CASCADE\n ON UPDATE CASCADE \n;\n GO\n";
+		}
+		return tableCreateStr+connCreateStr;
+	}
+	function createMySQLQuery() {
+		let tableCreateStr = "";
+		for (let i = 0; i < tableList.length; i++) {
+			let primField;
+			tableCreateStr += "CREATE TABLE " + tableList[i].getName() + "(\n";
+			let fields = tableList[i].getFields();
+			for (let i = 0; i < fields.length; i++) {
+				tableCreateStr += fields[i].name + " " + fields[i].type;
+				if(!fields[i].nullable)
+					tableCreateStr += " NOT NULL";
+				if(fields[i].autoinc){
+					tableCreateStr += " AUTO_INCREMENT";
+				}
+				if(fields[i].primK)
+					primField = fields[i];
+				tableCreateStr += ",\n";
+			}
+			if(primField)
+				tableCreateStr += "PRIMARY KEY("+primField.name+")\n";
+			tableCreateStr += ");\n";
+		}
+		let connCreateStr = "";
+		for(let i = 0; i < svgLM.connections.length; i++) {
+			let con = svgLM.connections[i];
+			connCreateStr += "ALTER TABLE " + con.table1.getName() + 
+				" ADD CONSTRAINT " + "FK_" + con.table1.getName() + con.field1.name +
+				"_" + con.table2.getName() + con.field2.name + " FOREIGN KEY (" +
+				con.field1.name + ") REFERENCES " + con.table2.getName() + "(" + 
+				con.field2.name + ");\n";
+		}
+		return tableCreateStr+connCreateStr;
+	}
+	let btn = sqlForm.getElementsByTagName("button")[0];
+	btn.onclick = function(e) {
+		document.body.removeChild(coverDiv);
+		sqlForm.style.display="none";
+	}
 }
