@@ -807,6 +807,7 @@ genSQL.onclick = function(e) {
 	coverDiv.id = "cover-div";
 	coverDiv.onmousedown = function(e){e.stopPropagation();}
 	document.body.appendChild(coverDiv);
+	sqlForm.parentElement.style.display = "block";
 	sqlForm.style.display = "block";
 	let radioBtns = sqlForm.querySelectorAll("input[type='radio']");
 	let sqlTextElem = sqlForm.getElementsByClassName("sql-query")[0];
@@ -896,6 +897,7 @@ genSQL.onclick = function(e) {
 	let btn = sqlForm.getElementsByTagName("button")[0];
 	btn.onclick = function(e) {
 		document.body.removeChild(coverDiv);
+		sqlForm.parentElement.style.display = "none";
 		sqlForm.style.display="none";
 	}
 }

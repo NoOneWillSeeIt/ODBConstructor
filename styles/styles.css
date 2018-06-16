@@ -287,6 +287,7 @@ html {
     margin: auto;
     width: 400px;
     height: 400px;
+    display: none;
 }
 .sql-window {
 	display: none;
