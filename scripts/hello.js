@@ -55,7 +55,14 @@ function tableManager(table) {
 		for (let i = 0; i < fieldList.length; i++) {
 			let row = tbody.insertRow(-1);
 			row.classList.add("table-row");
-			row.insertCell(0).innerHTML = (fieldList[i].primK)? "+" : " ";
+			if (fieldList[i].primK) {
+				let img = document.createElement("img");
+				img.src = "images/key-icon.png";
+				row.insertCell(0).appendChild(img);
+			}
+			else {
+				row.insertCell(0).innerHTML = " ";
+			}
 			row.insertCell(1).innerHTML = fieldList[i].name;
 			row.insertCell(2).innerHTML = fieldList[i].type;
 		}
@@ -73,7 +80,7 @@ function tableManager(table) {
 		fieldList = fields.slice();
 		this.updateHTML();
 	}
-	this.getHTMLTable = function(e) {
+	this.getHTMLTable = function() {
 		return DOMtable;
 	}
 	this.appendField = function(options) {
@@ -401,6 +408,11 @@ function getCanvasBoxOffset() {
 
 let temp;
 function setSidebar(tableM) {
+	for (let i = 0; i < tableList.length; i++) {
+		tableList[i].unsubAllFields();
+		tableList[i].getHTMLTable().classList.remove("selected");
+	}
+	tableM.getHTMLTable().classList.add("selected");
 	let tpanel = document.getElementById("table-panel");
 	tpanel.classList.remove("hidden");
 	let fpanel = document.getElementById("fields-panel");
@@ -466,10 +478,7 @@ function setSidebar(tableM) {
 			tableM.updateField(field.index, options);
 		}
 
-		let dragbtn = HTMLrow.cells[0].firstElementChild;
-		dragbtn.textContent = '\u21C5';
-
-		let input = HTMLrow.cells[1].firstElementChild;
+		let input = HTMLrow.cells[0].firstElementChild;
 		input.value = field.name;
 		input.addEventListener("input", cleanInput, true);
 		input.addEventListener("focusout", function(e) {
@@ -481,7 +490,7 @@ function setSidebar(tableM) {
 				input.value = field.name;
 		});
 
-		let typecell = HTMLrow.cells[2].firstElementChild;
+		let typecell = HTMLrow.cells[1].firstElementChild;
 		let typeTextArea = typecell.firstElementChild;
 		let typeBtn = typecell.lastChild;
 		typeTextArea.value = field.type;
@@ -518,14 +527,14 @@ function setSidebar(tableM) {
 			}			
 		}
 
-		let primChBox = HTMLrow.cells[3].firstElementChild;
+		let primChBox = HTMLrow.cells[2].firstElementChild;
 		primChBox.checked = (field.primK)? true: false;
 		primChBox.addEventListener("change", checkBoxOnChange, true);
 		field.subscribe(function(opts){
 			primChBox.checked = (opts.primK!=null)? opts.primK: primChBox.checked;
 		});
 
-		let nullChBox = HTMLrow.cells[4].firstElementChild;
+		let nullChBox = HTMLrow.cells[3].firstElementChild;
 		nullChBox.checked = (field.nullable)? true: false;
 		nullChBox.addEventListener("change", checkBoxOnChange, true);
 		field.subscribe(function(opts) {
@@ -540,7 +549,7 @@ function setSidebar(tableM) {
 			nullChBox.checked = (opts.nullable!=null)? opts.nullable: nullChBox.checked;
 		});
 
-		let detbtn = HTMLrow.cells[5].firstElementChild;
+		let detbtn = HTMLrow.cells[4].firstElementChild;
 		let detRow;
 		for (let i = 0; i < initElems.length; i++) {
 			if (initElems[i].getAttribute("data-content")=="field-det"){
@@ -613,7 +622,7 @@ function setSidebar(tableM) {
 			resizeAccordion(fpanel);
 		}
 
-		let delbtn = HTMLrow.cells[6].firstElementChild;
+		let delbtn = HTMLrow.cells[5].firstElementChild;
 		delbtn.onclick = function(e) {
 			svgLM.deleteAllFieldConnections(field);
 			fields.splice(field.index, 1);
@@ -639,11 +648,13 @@ function setSidebar(tableM) {
 		let cons = svgLM.findAllConsByTable(tableM);
 		for (let i = 0; i < cons.length; i++) {
 			let con = cons[i];
+			if (con.table1 != tableM)
+				continue;
 			let row = initRow.cloneNode(true);
 			row.classList.remove("initial");
 			let fieldCell = row.cells[0];
-			fieldCell.textContent = 
-				(con.table1===tableM)? con.field1.name: con.field2.name;
+
+			fieldCell.textContent = con.field1.name;
 			let dstFieldCell = row.cells[1];
 			dstFieldCell.textContent = 
 				(con.table1===tableM)? 
@@ -748,6 +759,7 @@ function unsetSidebar() {
 	}
 	for (let i = 0; i < tableList.length; i++) {
 		tableList[i].unsubAllFields();
+		tableList[i].getHTMLTable().classList.remove("selected");
 	}
 }
 
@@ -819,7 +831,6 @@ genSQL.onclick = function(e) {
 					query = createMSSQLQuery();
 				if (this.value == "MySQL") 
 					query = createMySQLQuery();
-				console.log(this, this.value, sqlTextElem);
 				sqlTextElem.removeAttribute("readonly");
 				sqlTextElem.value = query;
 				sqlTextElem.setAttribute("readonly", "true");

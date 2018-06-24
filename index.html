@@ -6,10 +6,10 @@
 	<script async src="scripts/hello.js"></script>
 	<link rel="stylesheet" type="text/css" href="styles/styles.css">
 </head>
-<body class="wrapper">
+<body>
 	<header class="header">
-		<button class="button" id="new-table-btn">Новая таблица</button><!--
-		--><button class="button" id="generateSQL">Сгенерировать SQL</button>
+		<button class="button" id="new-table-btn"><img src="images/new-table-icon.png"></button><!--
+		--><button class="button" id="generateSQL"><img src="images/sql-icon.png"></button>
 	</header>
 	<div class="content">
 		<div id="canvas-box">
@@ -36,7 +36,6 @@
 				<table class="field-list">
 					<thead>
 						<tr>
-							<td></td>
 							<td>Имя</td>
 							<td>Тип</td>
 							<td>PK</td>
@@ -47,13 +46,12 @@
 					</thead>
 					<tbody>
 						<tr class="initial" data-content="field-param">
-							<td><button class="fieldbtn">&#8597;</button></td>
 							<td><input type="text" class="input "></td>
-							<td><span class="input-wbtn"><input type="text" class="input fixed-input" ><button class="fieldbtn">&#9881;</button></span></td>
+							<td><span class="input-wbtn"><input type="text" class="input fixed-input" ><button class="fieldbtn"><img src="images/gear-icon.png"></button></span></td>
 							<td><input type="checkbox" name="primK"></td>
 							<td><input type="checkbox" name="nullable"></td>
-							<td><button class="fieldbtn">&#8230;</button></td>
-							<td><button class="fieldbtn">&#11198;</button></td>
+							<td><button class="fieldbtn"><img src="images/dots-icon.png"></button></td>
+							<td><button class="fieldbtn delbtn"><img src="images/delete-icon.png"></button></td>
 						</tr>
 						<tr class="initial" data-content="field-det">
 							<td colspan="8">
@@ -70,13 +68,13 @@
 				</table>
 				<button class="button" id="addFieldBtn">Добавить</button>
 			</div>
-			<button class="accordion">Связи</button>
+			<button class="accordion">Внешние ключи</button>
 			<div class="panel" id="connections-panel">
 				<table class="field-list">
 					<thead>
 						<tr>
 							<td>Поле</td>
-							<td>Поле назначения</td>
+							<td>Внешний ключ</td>
 							<td></td>
 						</tr>
 					</thead>
@@ -84,7 +82,7 @@
 						<tr class="initial">
 							<td></td>
 							<td></td>
-							<td><button class="fieldbtn">&#11198;</button></td>
+							<td><button class="fieldbtn delbtn"><img src="images/delete-icon.png"></button></td>
 						</tr>
 					</tbody>
 				</table>
@@ -136,6 +134,5 @@
 			<button class="button">Закрыть</button>
 		</div>
 	</div>
-	<!-- <footer class="footer"><p>my footer</p></footer> -->
 </body>
 </html>

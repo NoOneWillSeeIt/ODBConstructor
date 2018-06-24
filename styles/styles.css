@@ -18,7 +18,7 @@ html {
 ::-webkit-scrollbar-thumb:hover {
 	background: #555;
 }
-.wrapper {
+body {
 	display: flex;
 	flex-flow: column nowrap;
 	max-height: 100vh;
@@ -66,11 +66,6 @@ html {
 	padding: 0px;
 	position: relative;
 }
-.footer {
-	flex: 1 1 1em;
-	order: 3;
-	background-color: #000000;
-}
 .button {
 	border: none;
 	margin: 0px;
@@ -88,14 +83,19 @@ html {
 	font-weight: bold;
 	display: block;
 }
+.delbutton:hover {
+	background-color: #ff1a1a;
+}
 .table {
 	position: absolute;
 	padding: 0px;
 	border-collapse: collapse;
 	border-spacing: 0px;
 	border: 1px solid rgba(14, 144, 214, 1);
-	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
 	border-radius: 4px 4px 2px 2px;
+}
+.selected {
+	box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2), 0 6px 20px rgba(0, 0, 0, 0.19);
 }
 .theader {
 	align-self: center;
@@ -106,40 +106,25 @@ html {
 	color: white;
 	background: linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1));
 }
-.tfooter {
-	color: white;
-	margin: 0px;
-	padding: 0px;
-	background:linear-gradient(to right, rgba(57, 178, 243, 1), rgba(14, 144, 214, 1)); 
-}
-.tfooter .button {
-	margin: 5px;
-	color: white;
-	background-color: black; 
-}
 .table-row {
 	margin: 0px;
 	color: black;
 	background-color: white;
 	cursor: cell;
+	border-bottom: 1px solid #0EA2F1;
 }
-
 .table td {
 	margin: 0px;
 	padding: 5px;
 	border-right: 1px solid #0EA2F1;
 }
-/*
-.table td:first-child {
-	border-right: 1px solid;
-}*/
 .fields {
 	width: 100%
 }
 .header .button {
 	border-right: 1px solid #007399;
 	color: white;
-	padding: 20px;
+	padding: 5px 15px;
 	margin: 0px;
 	text-align: center;
 	background-color: #0d91d9;
@@ -153,7 +138,6 @@ html {
 	background-color: white;
 	border: 1px solid black;
 	padding: 2px;
-	/*border-radius: 2px;*/
 }
 .context-menu .button {
 	display: block;
@@ -165,8 +149,8 @@ html {
 	border: 1px solid white;
 }
 .context-menu .button:hover {
-	border: 1px solid #0a71a9/*#0e90d6*/;
-	background-color: #87d0f8/*#39b2f3*/;
+	border: 1px solid #0a71a9;
+	background-color: #87d0f8;
 }
 .context-menu hr {
 	margin: 0px;
@@ -228,14 +212,21 @@ html {
 .fieldbtn {
 	font: inherit;
 	border: 1px solid black;
-	width: 1.5em;
-	padding: 0px;
+	/*width: 1.5em;*/
+	padding: 2px;
 	background: #0d91d9;
 	border: 1px solid #F0F0F0;
+	border-radius: 2px;
 	color: white;
 }
 .fieldbtn:hover {
 	background-color: #0a71a9;
+}
+.delbtn {
+	background-color: #ff4d4d;
+}
+.delbtn:hover {
+	background-color: #ff1a1a;
 }
 .input-wbtn {
 	width: 6em;
