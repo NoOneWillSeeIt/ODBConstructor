@@ -27,7 +27,7 @@ body {
 	padding: 0px;
 }
 .header {
-	flex: 1 1 4em;
+	flex: 1 1 8em;
 	order: 1;
 	background-color: #0d91d9;
 	display: inline-block;

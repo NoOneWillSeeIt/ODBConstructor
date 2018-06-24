@@ -76,10 +76,6 @@ function tableManager(table) {
 			fieldList[i].unsubAll();
 		}
 	}
-	this.setFields = function(fields) {
-		fieldList = fields.slice();
-		this.updateHTML();
-	}
 	this.getHTMLTable = function() {
 		return DOMtable;
 	}
@@ -105,21 +101,8 @@ function tableManager(table) {
 		fieldList[num].editField(options);
 		this.updateHTML();
 	}
-	this.moveRow = function(numSrc, numDst) {
-		let removed = fieldList.splice(numSrc, 1);
-		let insNum = (numSrc < numDst)? numDst - 1: numDst;
-		fieldList.splice(insNum, 0, removed);
-		DOMtable.deleteRow(numSrc);
-		if (tbody.rows.length < insNum + 1)
-			tbody.appendChild(removed);
-		else
-			tbody.insertBefore(removed, tbody.children[insNum + 1]);
-	}
 	this.getFields = function() {
 		return fieldList.slice();
-	}
-	this.getField = function(num) {
-		return fieldList[num];
 	}
 	this.getFieldCoords = function(field) {
 		let index;
@@ -444,7 +427,7 @@ function setSidebar(tableM) {
 	};
 	text.addEventListener("focusout", temp);
 	function cleanInput(e) {
-		let str = e.target.value.replace(/[^а-яА-Яa-zA-Z0-9ёЁ\s]/g, "");
+		let str = e.target.value.replace(/[^а-яА-Яa-zA-Z0-9ёЁ\ \_]/g, "");
 		e.target.value = str;
 	}
 	text.addEventListener("input", cleanInput, true);
@@ -678,7 +661,7 @@ function setSidebar(tableM) {
 	let newFieldBtn = document.getElementById("addFieldBtn");
 	newFieldBtn.onclick = function(e) {
 		let options = {
-			name: "поле" + fields.length,
+			name: "Поле" + fields.length,
 			type: "int",
 			nullable: false,
 			primK: false,
