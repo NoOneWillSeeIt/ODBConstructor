@@ -250,6 +250,7 @@ body {
 	border: 1px solid #0d91d9;
 	border-radius: 4px;
 	padding: 10px;
+	z-index: 1000;
 }
 .field-details {
 	background: white;
